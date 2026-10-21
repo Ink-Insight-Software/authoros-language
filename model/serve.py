@@ -104,7 +104,12 @@ def main() -> None:
         raise SystemExit("use a longer token (12+ characters)")
     run = Path(a.run)
     tok = AutoTokenizer.from_pretrained(run)
-    model = AutoModelForCausalLM.from_pretrained(run).eval()
+    if (run / "int8.pt").exists():
+        from quantize import load_int8
+
+        model = load_int8(run)
+    else:
+        model = AutoModelForCausalLM.from_pretrained(run).eval()
     # The first generation is slow while the runtime warms up (about half a minute on a
     # small CPU); do it now, so the first request an author makes is not the one.
     with torch.no_grad():

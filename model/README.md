@@ -111,6 +111,27 @@ python model/serve.py runs/v0 --token SECRET   # serve on your own machine
 `serve.py` listens on `127.0.0.1:8808` by default; put your own TLS in front of it
 (a reverse proxy) before exposing it, and keep the token private.
 
+## Shrinking it (8-bit): tried, not recommended yet
+
+`quantize.py` converts a trained model to 8-bit weights (PyTorch dynamic
+quantisation) and `serve.py` serves the result unchanged. Measured on the v0 model,
+on 4 CPU cores:
+
+| | fp32 | int8 |
+|---|---|---|
+| file size | 538 MB | 248 MB |
+| 24 tokens | 0.19 s | 0.12 s |
+| same reply as fp32 (10 prompts, greedy) | | 1 of 10 |
+
+It is smaller and faster, but it changes what the model says, and for the worse in
+places (it started echoing the author's line). That is on a weak v0 model, so the
+comparison is noisy, but there is no reason to accept it. fp32 is already fast enough
+(0.2 to 0.45 s a reply) and 540 MB is small, so **serve fp32 for now**. If size
+matters later, try half precision (a halving with little loss) or a GGUF Q8_0 export
+for llama.cpp, which quantises more carefully. PyTorch's `torch.ao` quantisation is
+also being retired in favour of torchao, so this script is a measurement tool, not a
+dependency to build on.
+
 ## The format
 
 One example is a short block of text; the model learns to write what follows
