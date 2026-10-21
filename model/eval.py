@@ -1,6 +1,6 @@
 """What a trained model says, on prompts it has not seen, with a few cheap checks.
 
-    python model/eval.py runs/v0
+    python model/eval.py runs/v0 [sardonic,timid,...]
 
 The checks are deliberately simple (a reply exists, is one short line, does not just
 repeat what the author said, brings in no number). The fuller guard lives in the Dart
@@ -34,9 +34,9 @@ CASES = [
 ]
 
 
-def say(model, tok, moment, author, temperature=0.8, max_new=40, seed=0):
+def say(model, tok, moment, author, voice="unlabelled", temperature=0.8, max_new=40, seed=0):
     torch.manual_seed(seed)
-    ids = tok(prompt(moment, author), return_tensors="pt")
+    ids = tok(prompt(moment, author, voice), return_tensors="pt")
     out = model.generate(
         **ids,
         max_new_tokens=max_new,
@@ -64,15 +64,20 @@ def checks(author: str, reply: str) -> list[str]:
 
 def main() -> None:
     run = Path(sys.argv[1])
+    voices = sys.argv[2].split(",") if len(sys.argv) > 2 else ["unlabelled"]
     tok = AutoTokenizer.from_pretrained(run)
     model = AutoModelForCausalLM.from_pretrained(run).eval()
     failed = 0
-    for moment, author in CASES:
-        reply = say(model, tok, moment, author)
-        bad = checks(author, reply)
-        failed += bool(bad)
-        print(f"[{moment}] {author or '-':38} -> {reply}" + (f"   !! {','.join(bad)}" if bad else ""))
-    print(f"\n{len(CASES) - failed}/{len(CASES)} pass the simple checks")
+    total = 0
+    for voice in voices:
+        print(f"\n== {voice}")
+        for moment, author in CASES:
+            reply = say(model, tok, moment, author, voice)
+            bad = checks(author, reply)
+            failed += bool(bad)
+            total += 1
+            print(f"[{moment}] {author or '-':38} -> {reply}" + (f"   !! {','.join(bad)}" if bad else ""))
+    print(f"\n{total - failed}/{total} pass the simple checks")
 
 
 if __name__ == "__main__":

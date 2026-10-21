@@ -52,15 +52,59 @@ similar clauses. So this pipeline does not generate training text with any AI
 service, and the code in this directory contains no such step. Read the terms of
 whatever you use before putting its output in `data/`.
 
+## Writing the training lines
+
+The model gets better from lines you write, in the voice of each tone, so the format
+is made for writing by hand. One plain text file per voice (or several voices in one):
+
+```
+written-by: Your Name
+rights: own                 # own | public-domain | licensed
+ai-assisted: no             # must be "no"
+
+voice: sardonic
+length: measured            # terse | measured | expansive
+
+[opening]
+Oh. You came. How unexpectedly punctual.
+
+[chat]
+> Good morning!
+Is it? Do tell me what is good about it.
+```
+
+`[opening]`, `[returning]`, `[chat]` and `[farewell]` are the moments; `>` is the
+author's line, and a reply is one line. The twelve voices are Companion's tones:
+neutral, warm, gentle, earnest, dry, sardonic, blunt, formal, timid, quiet, playful,
+stoic. Copy `authoring/TEMPLATE.example.md`.
+
+The checker holds your lines to the same rules the model's replies will be held to:
+short (30 words), plain (no markdown, quotation marks or digits), and no names or
+titles, because a character here is not given a name. It also requires the three
+header lines, so every line has a recorded author and right to use it.
+
+```
+python model/authoring.py check    model/authoring/*.md       # errors and repeats
+python model/authoring.py coverage model/authoring/*.md       # voice x moment table
+python model/authoring.py build    model/authoring/*.md       # writes data/train.jsonl, eval.jsonl
+python model/authoring.py build --with-gutenberg model/authoring/*.md   # adds the public-domain set, unlabelled
+```
+
+A first useful fine-tune wants roughly ten openings, ten returning lines, forty chat
+exchanges and ten farewells per voice (about 840 lines); `coverage` shows the gaps.
+Every tenth line of each cell is held out for evaluation. Fewer lines still train;
+they just constrain the voice less.
+
 ## Run it
 
 ```
 python -m venv .venv && . .venv/bin/activate
 pip install -r model/requirements.txt          # CPU torch is enough for v0
 
-python model/prepare_gutenberg.py              # public-domain exchanges -> data/*.jsonl
+python model/prepare_gutenberg.py              # public-domain exchanges -> data/gutenberg_*.jsonl
+python model/authoring.py build --with-gutenberg model/authoring/*.md   # -> data/train.jsonl, eval.jsonl
 python model/train.py --out runs/v0            # fine-tune (add --device cuda on a GPU)
-python model/eval.py runs/v0                   # held-out loss and sample replies
+python model/eval.py runs/v0 sardonic,timid    # sample replies in each voice
 python model/serve.py runs/v0 --token SECRET   # serve on your own machine
 ```
 
@@ -73,7 +117,7 @@ One example is a short block of text; the model learns to write what follows
 `CHARACTER:`.
 
 ```
-VOICE: tone=unlabelled
+VOICE: tone=unlabelled length=measured
 MOMENT: chat            (opening | returning | chat | farewell)
 AUTHOR: Good morning, how are you?
 CHARACTER: Very well, thank you. And you?
@@ -85,6 +129,7 @@ Loss is computed on the reply only. `AUTHOR:` is empty for an opening.
 
 - The Dart client (`ModelClient` for your server), the settings in Companion and the
   chat guard. They come after there is a model worth calling.
-- Voice-labelled data, and a per-tone evaluation.
+- Voice-labelled data (the format and checker are here; the lines are yours to write),
+  and a per-tone evaluation once there are lines to measure.
 - Costs: the numbers for serving you-versus-the-user come once there is a model to
   measure.

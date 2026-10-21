@@ -3,7 +3,7 @@
     python model/serve.py runs/v0 --token SECRET [--host 127.0.0.1 --port 8808]
 
 POST /v1/say   Authorization: Bearer SECRET
-  {"moment": "chat", "author": "Good morning!", "voice": "unlabelled",
+  {"moment": "chat", "author": "Good morning!", "voice": "sardonic", "length": "terse",
    "temperature": 0.8, "max_new_tokens": 40}
   -> {"text": "...", "model": "runs/v0"}
 
@@ -27,7 +27,7 @@ from pathlib import Path
 import torch
 from transformers import AutoModelForCausalLM, AutoTokenizer
 
-from common import MOMENTS, first_line, prompt
+from common import LENGTHS, MOMENTS, TONES, first_line, prompt
 
 MAX_BODY = 4096
 MAX_AUTHOR_CHARS = 600
@@ -66,13 +66,18 @@ def make_handler(model, tok, token: str, name: str):
                 if moment not in MOMENTS:
                     return self._send(400, {"error": "unknown moment"})
                 author = str(req.get("author", ""))[:MAX_AUTHOR_CHARS]
-                voice = str(req.get("voice", "unlabelled"))[:40]
+                voice = str(req.get("voice", "unlabelled"))
+                length = str(req.get("length", "measured"))
+                if voice != "unlabelled" and voice not in TONES:
+                    return self._send(400, {"error": "unknown voice"})
+                if length not in LENGTHS:
+                    return self._send(400, {"error": "unknown length"})
                 temp = min(max(float(req.get("temperature", 0.8)), 0.0), 1.5)
                 max_new = min(max(int(req.get("max_new_tokens", 40)), 1), 80)
             except (ValueError, TypeError, json.JSONDecodeError):
                 return self._send(400, {"error": "bad request"})
             with lock, torch.no_grad():
-                ids = tok(prompt(moment, author, voice), return_tensors="pt")
+                ids = tok(prompt(moment, author, voice, length), return_tensors="pt")
                 out = model.generate(
                     **ids,
                     max_new_tokens=max_new,

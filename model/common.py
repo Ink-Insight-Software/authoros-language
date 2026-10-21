@@ -5,13 +5,23 @@ from __future__ import annotations
 
 MOMENTS = ("opening", "returning", "chat", "farewell")
 
+# The tones are the Dart package's `VoiceTone` values, plus `unlabelled` for data
+# that says nothing about voice (the public-domain text).
+TONES = (
+    "neutral", "warm", "gentle", "earnest", "dry", "sardonic", "blunt", "formal",
+    "timid", "quiet", "playful", "stoic",
+)
+LENGTHS = ("terse", "measured", "expansive")
 
-def prompt(moment: str, author: str = "", voice: str = "unlabelled") -> str:
+
+def prompt(
+    moment: str, author: str = "", voice: str = "unlabelled", length: str = "measured"
+) -> str:
     """Everything the model is given. It writes what follows `CHARACTER:`."""
     if moment not in MOMENTS:
         raise ValueError(f"unknown moment {moment!r}")
     return (
-        f"VOICE: tone={voice}\n"
+        f"VOICE: tone={voice} length={length}\n"
         f"MOMENT: {moment}\n"
         f"AUTHOR: {author.strip()}\n"
         f"CHARACTER:"
@@ -21,7 +31,12 @@ def prompt(moment: str, author: str = "", voice: str = "unlabelled") -> str:
 def example(row: dict) -> tuple[str, str]:
     """(prompt, reply) for one JSONL row."""
     return (
-        prompt(row["moment"], row.get("author", ""), row.get("voice", "unlabelled")),
+        prompt(
+            row["moment"],
+            row.get("author", ""),
+            row.get("voice", "unlabelled"),
+            row.get("length", "measured"),
+        ),
         " " + row["reply"].strip(),
     )
 

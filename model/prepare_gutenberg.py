@@ -2,7 +2,7 @@
 
 Downloads a short list of public-domain novels from Project Gutenberg, finds runs of
 quoted speech, and writes (author line -> character reply) pairs, plus opening and
-farewell lines, as JSONL for train.py. Text only from sources whose licence allows
+farewell lines, as data/gutenberg_*.jsonl, which `authoring.py build --with-gutenberg` folds into train.jsonl. Text only from sources whose licence allows
 it: record each in data/SOURCES.md.
 
     python model/prepare_gutenberg.py [--limit-books N] [--max-words 22]
@@ -199,7 +199,7 @@ def write(sets: dict[str, list[dict]], eval_fraction: float, seed: int) -> None:
     for r in rows:
         (held if (hash(r["reply"]) % 1000) / 1000 < eval_fraction else train).append(r)
     for name, data in (("train", train), ("eval", held)):
-        with open(OUT / f"{name}.jsonl", "w", encoding="utf-8") as f:
+        with open(OUT / f"gutenberg_{name}.jsonl", "w", encoding="utf-8") as f:
             for r in data:
                 f.write(json.dumps({**r, "voice": "unlabelled"}, ensure_ascii=False) + "\n")
     print(f"train {len(train)}  eval {len(held)}")
