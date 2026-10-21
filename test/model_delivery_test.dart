@@ -44,6 +44,7 @@ DeliveryRequest ask({
 );
 
 void main() {
+  samples();
   group('the prompt', () {
     test('carries the question, the author\'s words and the known facts', () {
       final r = ask(facts: ['Mara keeps a ledger']);
@@ -350,4 +351,18 @@ class _Throws implements ModelClient {
   @override
   Future<String> complete(ModelPrompt prompt, {int maxTokens = 300}) =>
       throw StateError('boom');
+}
+
+void samples() {
+  group('the prompt sample', () {
+    test('is what a model would be sent for the sample moment', () {
+      final v = base.voice(VoiceTone.timid);
+      final p = VoiceSample.prompt(v, characterName: 'Mara');
+      expect(p.user, contains(VoiceSample.said));
+      expect(p.user, contains('CHARACTER: Mara'));
+      expect(p.user, contains('- nothing'));
+      expect(p.user, contains('timid'));
+      expect(VoiceSample.prompt(v).user, isNot(contains('CHARACTER:')));
+    });
+  });
 }
