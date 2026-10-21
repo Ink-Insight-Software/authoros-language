@@ -1,0 +1,90 @@
+# The AuthorOS character model
+
+Your own model, trained by you and run on your own server. This directory is the
+whole pipeline: data in, trained weights out, a small server in front, and a check
+of what it produces. Nothing here calls anyone else's model.
+
+**Scope of v0: greetings and light conversation.** A character opens a conversation,
+welcomes the author back, and replies in kind to a light remark ("good morning", "how
+are you", "thanks", "see you tomorrow"). It does not ask the story's questions, read
+answers or decide what becomes canon: the engine still does all of that.
+
+## The decisions, and why
+
+- **Fine-tune a small open model rather than train from scratch.** The base is
+  `HuggingFaceTB/SmolLM2-135M` (Apache-2.0, 135M parameters). Training from scratch
+  would need orders of magnitude more text than greetings and chat can supply, and
+  would produce worse English for the same data. You still train it, the weights are
+  yours, and nothing about the base's licence restricts what you do with them.
+  `train.py` can also start from random weights (`--from-scratch`) to compare.
+- **Small, so it runs on a modest server.** 135M parameters runs on a CPU (a second
+  or two a reply) and fits easily in a few GB; a GPU is only needed for training
+  larger data or a larger base.
+- **Every reply is still checked, and there is still a fallback.** The model's
+  output goes through the same kind of guard as before (short, plain, no invented
+  name or number), and a failure falls back to the authored line. A small model of
+  your own will sometimes be wrong; the floor is what makes that safe.
+
+## What it will be good and bad at, honestly
+
+It will be as good as its data. v0's data is public-domain fiction, which teaches
+natural, conversational English and a wide range of manners, but in a nineteenth-
+and early twentieth-century voice, and with no label saying which voice is which. So
+v0 can reply to a greeting plausibly and briefly, and it cannot yet be told "sardonic"
+or "timid" and obey. Voice control comes with voice-labelled data: lines the author
+wrote for their own characters, and (with consent) lines authors accept or edit in
+Companion. The format already has a `VOICE:` line for it; v0 fills it with
+`unlabelled`.
+
+## Where the data comes from, and where it must not
+
+**Allowed here:** public-domain text (Project Gutenberg, via `prepare_gutenberg.py`),
+text you wrote yourself, and anything you hold the rights to or that carries a licence
+allowing commercial use. Keep a record of each source and its licence in
+`data/SOURCES.md`.
+
+**Check before using:** many popular dialogue datasets are research- or
+non-commercial-only (DailyDialog, Empathetic Dialogues, Persona-Chat variants, movie
+and subtitle corpora), and scraped chat is not yours to train on. **Text written by
+another AI service may have terms against training a model on it:** Anthropic's
+terms restrict using its outputs to build competing models, and other providers have
+similar clauses. So this pipeline does not generate training text with any AI
+service, and the code in this directory contains no such step. Read the terms of
+whatever you use before putting its output in `data/`.
+
+## Run it
+
+```
+python -m venv .venv && . .venv/bin/activate
+pip install -r model/requirements.txt          # CPU torch is enough for v0
+
+python model/prepare_gutenberg.py              # public-domain exchanges -> data/*.jsonl
+python model/train.py --out runs/v0            # fine-tune (add --device cuda on a GPU)
+python model/eval.py runs/v0                   # held-out loss and sample replies
+python model/serve.py runs/v0 --token SECRET   # serve on your own machine
+```
+
+`serve.py` listens on `127.0.0.1:8808` by default; put your own TLS in front of it
+(a reverse proxy) before exposing it, and keep the token private.
+
+## The format
+
+One example is a short block of text; the model learns to write what follows
+`CHARACTER:`.
+
+```
+VOICE: tone=unlabelled
+MOMENT: chat            (opening | returning | chat | farewell)
+AUTHOR: Good morning, how are you?
+CHARACTER: Very well, thank you. And you?
+```
+
+Loss is computed on the reply only. `AUTHOR:` is empty for an opening.
+
+## Not here yet
+
+- The Dart client (`ModelClient` for your server), the settings in Companion and the
+  chat guard. They come after there is a model worth calling.
+- Voice-labelled data, and a per-tone evaluation.
+- Costs: the numbers for serving you-versus-the-user come once there is a model to
+  measure.
