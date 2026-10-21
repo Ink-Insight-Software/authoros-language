@@ -36,13 +36,39 @@ dependencies:
       ref: <commit> # 0.1.0
 ```
 
-## Adding a model
+## The model-backed delivery
 
-The seams are `DeliveryService` and `ResponseReader`. A model-backed
-implementation would implement them here, behind the same guarantees (the question
-verbatim, only supplied facts, fall back to the rule-based line). It is a separate
-decision with its own privacy design (Companion ADR-0001), not part of this
-package yet.
+`ModelBackedDelivery` words a turn with a model, behind the same seam as the
+rule-based delivery, and is **off unless an application turns it on**. It is a
+separate decision from the rule-based layer (Companion ADR-0001), with its own
+privacy design:
+
+- **Only a turn that asks a question is worded by a model.** Opening a
+  conversation, closing a topic and answering back stay rule-based; they are
+  decided and bounded already.
+- **Only what the turn needs is sent**, and `DeliveryPrompt.build(...).preview` is
+  exactly that text, for an application to show the author before the first request
+  leaves the device: the character's voice (including the author's own notes and
+  example lines for it), what the character is doing, the author's last words, the
+  facts the character may refer to, and the selected question. Nothing else from
+  the project.
+- **The question is never rewritten.** `DeliveryGuard` checks every reply: the
+  question must be intact, once, last; the reply short and plain; and no name,
+  place or number may appear that the model was not given. A reply that fails any
+  check is thrown away.
+- **There is always a floor.** On a failed check, a refused key, a limit, a timeout
+  or no network, the rule-based line is used, and `DeliveryResult.fallback` says
+  why.
+- **A reply is a suggestion, never canon.** The guard cannot prove a sentence is true
+  of the story, so the prompt allows no facts but those supplied, and nothing a model
+  says becomes canon without the author's explicit approval.
+- **The key is the author's own**, held by the application and sent only as the
+  request header. `AnthropicClient` never stores, logs or returns it.
+- **Not deterministic.** A model's wording is not replayable from a seed; the
+  rule-based delivery still is.
+
+Another provider implements `ModelClient` (text in, text out) and changes nothing
+else.
 
 ## Checks
 

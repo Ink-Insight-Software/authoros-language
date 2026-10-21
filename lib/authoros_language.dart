@@ -27,3 +27,8 @@ export 'src/voice/relationship_state.dart';
 export 'src/voice/relationship_voice_composer.dart';
 export 'src/voice/topic_boundaries.dart';
 export 'src/voice/voice_profile.dart';
+export 'src/model/anthropic_client.dart';
+export 'src/model/delivery_guard.dart';
+export 'src/model/delivery_prompt.dart';
+export 'src/model/model_client.dart';
+export 'src/model/model_delivery.dart';
