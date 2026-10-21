@@ -95,6 +95,29 @@ exchanges and ten farewells per voice (about 840 lines); `coverage` shows the ga
 Every tenth line of each cell is held out for evaluation. Fewer lines still train;
 they just constrain the voice less.
 
+## Collecting lines in Supabase
+
+Lines can also be collected from several writers in a Supabase project
+(`authoros-model`, Mumbai). The `training_lines` table holds one reply per row with
+its voice, length, moment, author line, who wrote it and the right to use it. The
+database itself refuses a digit, markup, a quotation mark or more than 30 words; that
+the writer is not an AI; an author line on an opening; and a repeat. Row-level
+security lets a signed-in writer see, add, edit and remove only their own lines, and
+only while they are still `submitted`. Approving or rejecting a line is done with the
+service role (the dashboard), never by the writer. Only approved lines are exported:
+
+```
+SUPABASE_URL=https://cmiotfsijbzleqlwbldg.supabase.co SUPABASE_SERVICE_KEY=... \
+  python model/supabase_export.py
+```
+
+The export writes ordinary authoring files, so `authoring.py check` still applies the
+no-names rule, which SQL cannot. The `model-artifacts` bucket is private and for small
+files only: on the free plan a file is capped at 50 MB, so **trained weights do not
+fit there** (the model is about 540 MB). Keep weights on the server that runs them.
+There is no writing screen yet: until there is one, writers send authoring files, or
+lines are added in the dashboard.
+
 ## Run it
 
 ```
