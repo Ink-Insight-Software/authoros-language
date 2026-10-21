@@ -105,6 +105,11 @@ def main() -> None:
     run = Path(a.run)
     tok = AutoTokenizer.from_pretrained(run)
     model = AutoModelForCausalLM.from_pretrained(run).eval()
+    # The first generation is slow while the runtime warms up (about half a minute on a
+    # small CPU); do it now, so the first request an author makes is not the one.
+    with torch.no_grad():
+        warm = tok(prompt("chat", "Hello.", "unlabelled", "measured"), return_tensors="pt")
+        model.generate(**warm, max_new_tokens=8, pad_token_id=tok.eos_token_id)
     server = ThreadingHTTPServer((a.host, a.port), make_handler(model, tok, a.token, str(run)))
     print(f"serving {run} on http://{a.host}:{a.port}")
     server.serve_forever()
