@@ -1,3 +1,4 @@
+import json
 import tempfile
 import unittest
 from pathlib import Path
@@ -113,6 +114,21 @@ class Authoring(unittest.TestCase):
         text = authoring.coverage(rows)
         self.assertIn("dry", text)
         self.assertIn("under target", text)
+
+    def test_the_writing_screen_judges_lines_as_the_checker_does(self):
+        # writer/rule_cases.json is also run against writer/rules.js (rules.test.js).
+        cases = json.loads((Path(__file__).parent / "writer" / "rule_cases.json").read_text())
+        for c in cases:
+            self.assertEqual(
+                not authoring.check_reply(c["text"], "reply"), c["ok"], c
+            )
+
+    def test_the_voices_match_the_writing_screen(self):
+        js = (Path(__file__).parent / "writer" / "rules.js").read_text()
+        import re
+
+        tones = re.search(r"var TONES = \[(.*?)\];", js, re.S).group(1)
+        self.assertEqual(re.findall(r"'(\w+)'", tones), list(authoring.TONES))
 
     def test_the_template_itself_is_valid(self):
         path = Path(__file__).parent / "authoring" / "TEMPLATE.example.md"

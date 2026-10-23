@@ -118,6 +118,31 @@ fit there** (the model is about 540 MB). Keep weights on the server that runs th
 There is no writing screen yet: until there is one, writers send authoring files, or
 lines are added in the dashboard.
 
+## The writing screen
+
+`model/writer/index.html` is a small static page (no build step) where a writer signs
+in with an emailed link, picks a voice, length and moment, writes the line, and sees
+the rules checked as they type: 30 words at most, and no names, digits, quotation
+marks or markup. They must tick that they wrote the line themselves and no AI service
+did, and give their name and right to use it. They see their own lines, a table of
+voice against moment with the target for each, and can edit or remove a line until it
+is reviewed. It talks to Supabase with the project's publishable key (public by
+design); what a writer can see or change is enforced by the database, not the page.
+
+Serve the folder from anywhere that serves static files (the repository is public, so
+GitHub Pages works), then **in Supabase, Authentication > URL Configuration, add the
+page's address as the Site URL and a Redirect URL**, or the emailed link will not
+return to it. Supabase's built-in email sender is limited to a few messages an hour; for
+more than a handful of writers, set up your own SMTP sender in the same dashboard.
+
+```
+node --test model/writer/rules.test.js                                  # the rules, and parity with authoring.py
+NODE_PATH=$(npm root -g) node model/writer/ui.test.mjs                  # the page, in a browser, with a fake Supabase
+```
+
+`writer/rule_cases.json` is the one list of lines that both the page and
+`authoring.py` must judge the same way.
+
 ## Run it
 
 ```
