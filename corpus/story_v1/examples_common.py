@@ -17,13 +17,13 @@ def S(source_id, text, tokens, facts):
 
 
 def fact(subject, relation, obj, *, location=None, destination=None, origin=None,
-         time=None, manner=None, attribute=None, polarity="affirmed",
+         recipient=None, time=None, manner=None, attribute=None, polarity="affirmed",
          modality="certain", attribution=None, unresolved_subject=False):
     """A gold fact. Places are entity ids; time, manner and attribute are text."""
     f = {
         "subject": subject, "relation": relation, "object": obj,
         "location": location, "destination": destination, "origin": origin,
-        "time": time, "manner": manner, "attribute": attribute,
+        "recipient": recipient, "time": time, "manner": manner, "attribute": attribute,
         "polarity": polarity, "modality": modality, "attribution": attribution,
         "status": "STATED",
     }

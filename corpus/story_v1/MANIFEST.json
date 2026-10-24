@@ -1,0 +1,13 @@
+{
+  "schema_version": "story-grounding/1",
+  "files": {
+    "dev.jsonl": {
+      "records": 37,
+      "sha256": "0c3741b96e59760f904709085514f4b4cc85cbf247a9fba05fe47c36a35ac77f"
+    },
+    "heldout.jsonl": {
+      "records": 18,
+      "sha256": "6c36150699375d7d5fd909d26c8d4f55626c279b78074e52c9212253e56ad3b8"
+    }
+  }
+}
