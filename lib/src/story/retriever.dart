@@ -139,7 +139,7 @@ class StoryRetriever {
         if (stated.isEmpty) {
           final pronoun = affirmed.any((f) => f.unresolvedSubject);
           return unknown(
-            note: pronoun ? 'ambiguous pronoun' : 'agent not stated',
+            note: pronoun ? 'unresolved reference' : 'agent not stated',
             evidence: affirmed,
             offer: !pronoun,
           );
@@ -298,12 +298,12 @@ class StoryRetriever {
     List<String> trace,
   ) {
     final kind = q.attributeKind == 'material'
-        ? StoryLexicon.materials
+        ? {...StoryLexicon.materials, ...StoryLexicon.metals}
         : StoryLexicon.colours;
     final subject = q.entities.first;
     final about = [
       for (final f in facts)
-        if (f.subject == subject &&
+        if (sameEntity(f.subject, subject) &&
             f.relation == 'be' &&
             f.attribute != null &&
             kind.contains(f.attribute) &&
@@ -407,7 +407,7 @@ class StoryRetriever {
 
   _Move? _moveOf(Fact f, String thing) {
     // The thing is where it is said to be.
-    if (f.subject == thing &&
+    if (sameEntity(f.subject, thing) &&
         _stative.contains(f.relation) &&
         f.location != null) {
       return _Move(
@@ -416,7 +416,7 @@ class StoryRetriever {
         f.location!.entityId ?? f.location!.text,
       );
     }
-    if (f.object == thing) {
+    if (sameEntity(f.object, thing)) {
       final r = f.relation;
       if (_lex
               .synonyms(r)

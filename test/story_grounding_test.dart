@@ -65,6 +65,28 @@ void main() {
     });
   });
 
+  group('tag inventory', () {
+    test('Penn Treebank tags map to the project labels at the boundary', () {
+      expect(pennToUpos('NNP'), Upos.propn);
+      expect(pennToUpos('VBD'), Upos.verb);
+      expect(pennToUpos('MD'), Upos.aux);
+      expect(pennToUpos('PRP\$'), Upos.det);
+      expect(pennToUpos('IN'), Upos.adp);
+      expect(pennToUpos('FW'), isNull);
+    });
+  });
+
+  group('source kinds', () {
+    test('evidence says which kind of source it came from', () {
+      final index = StoryIndex(_registry())
+        ..ingest('canon1', 'The key was silver.', kind: SourceKind.canon)
+        ..ingest('note1', 'The key was brass.', kind: SourceKind.note);
+      final a = index.ask('What colour is the key?');
+      expect(a.status, EvidenceStatus.conflict);
+      expect({for (final e in a.evidence) e.kind}, {'canon', 'note'});
+    });
+  });
+
   group('the development corpus', () {
     final records = [
       for (final l in File('corpus/story_v1/dev.jsonl').readAsLinesSync())
@@ -249,7 +271,24 @@ void main() {
         'She took the map.',
       ]).ask('Who took the map?');
       expect(a.status, EvidenceStatus.unknown);
-      expect(a.note, 'ambiguous pronoun');
+      expect(a.note, 'unresolved reference');
+    });
+  });
+
+  group('what a word names does not depend on the sentence it is in', () {
+    test('a thing described as an item and as a place is one thing', () {
+      final a = _story([
+        'The shed was brown.',
+        'Mara waited by the green shed.',
+      ]).ask('What colour is the shed?');
+      expect(a.status, EvidenceStatus.conflict);
+      expect(a.answers.toSet(), {'brown', 'green'});
+    });
+
+    test('characters are never merged with things of the same word', () {
+      expect(sameEntity('char_baker', 'item_baker'), isFalse);
+      expect(sameEntity('item_gate', 'place_gate'), isTrue);
+      expect(sameEntity('item_gate', 'place_gatehouse'), isFalse);
     });
   });
 

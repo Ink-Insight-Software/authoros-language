@@ -331,6 +331,8 @@ class StoryLexicon {
   // ---- adjectives -----------------------------------------------------------------
 
   static const colours = {
+    'brass',
+    'gold',
     'red',
     'green',
     'blue',
@@ -358,7 +360,6 @@ class StoryLexicon {
     'iron',
     'wooden',
     'stone',
-    'brass',
     'glass',
     'leather',
     'steel',
@@ -368,6 +369,9 @@ class StoryLexicon {
     'cotton',
     'marble',
   };
+
+  /// Metals are both a colour and a material: "the key was brass" answers either.
+  static const metals = {'brass', 'bronze', 'copper', 'gold', 'silver'};
   static const adjectives = {
     ...colours,
     ...materials,

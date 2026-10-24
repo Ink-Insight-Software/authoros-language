@@ -65,6 +65,10 @@ void main(List<String> args) {
       evidence = Counter();
   final byIntent = <String, Counter>{}, byStatus = <String, Counter>{};
   final qaErrors = <String>[];
+  // Per-label tagging counts, evidence precision/recall, and the status confusion.
+  final tp = <String, int>{}, fp = <String, int>{}, fn = <String, int>{};
+  var evTp = 0, evPred = 0, evGold = 0;
+  final confusion = <String, Map<String, int>>{};
 
   for (final r in records) {
     final registry = EntityRegistry([
@@ -95,6 +99,13 @@ void main(List<String> args) {
           final g = gold[i];
           final good = got[i].pos?.label == g['pos'];
           pos.add(good);
+          final gl = g['pos'] as String, pl = got[i].pos?.label ?? '?';
+          if (good) {
+            tp[gl] = (tp[gl] ?? 0) + 1;
+          } else {
+            fn[gl] = (fn[gl] ?? 0) + 1;
+            fp[pl] = (fp[pl] ?? 0) + 1;
+          }
           if (!good) {
             posErrors.add(
               '$id "${got[i].text}": ${got[i].pos?.label} want ${g['pos']}',
@@ -194,6 +205,11 @@ void main(List<String> args) {
         byIntent.putIfAbsent(qd['intent'] as String, Counter.new).add(good);
         byStatus.putIfAbsent(status, Counter.new).add(good);
         evidence.add(evOk);
+        evTp += ans.evidenceSourceIds.where(wantEv.contains).length;
+        evPred += ans.evidenceSourceIds.length;
+        evGold += wantEv.length;
+        final row = confusion.putIfAbsent(status, () => {});
+        row[ans.status.label] = (row[ans.status.label] ?? 0) + 1;
         if (exp['note'] != null) note.add(ans.note == exp['note']);
         offer.add(ans.offerProposal == (exp['offer_proposal'] == true));
         final wantAttr = exp['attribution'] as Map<String, dynamic>?;
@@ -243,7 +259,24 @@ void main(List<String> args) {
     )
     ..writeln(
       '  by status: ${byStatus.entries.map((e) => '${e.key} ${e.value}').join(', ')}',
+    )
+    ..writeln(
+      '  evidence precision ${evPred == 0 ? 'n/a' : f(evTp / evPred)}%  recall ${evGold == 0 ? 'n/a' : f(evTp / evGold)}%',
+    )
+    ..writeln(
+      '  status confusion (gold -> predicted): ${confusion.entries.map((e) => '${e.key}: ${e.value}').join('; ')}',
+    )
+    ..writeln('  per-label POS (precision / recall / F1, support):');
+  for (final label in ({...tp.keys, ...fn.keys}.toList()..sort())) {
+    final t = tp[label] ?? 0,
+        pp = t + (fp[label] ?? 0),
+        gg = t + (fn[label] ?? 0);
+    final pr = pp == 0 ? 0.0 : t / pp, re = gg == 0 ? 0.0 : t / gg;
+    final f1l = pr + re == 0 ? 0.0 : 2 * pr * re / (pr + re);
+    b.writeln(
+      '    ${label.padRight(6)} ${f(pr)} / ${f(re)} / ${f(f1l)}   n=$gg',
     );
+  }
   print(b);
   if (!quiet) {
     for (final (title, list) in [
@@ -265,7 +298,24 @@ void main(List<String> args) {
       const JsonEncoder.withIndent('  ').convert({
         'split': split,
         'records': records.length,
-        'tagging': {'pos': pos.toJson(), 'open_class_lemma': lemma.toJson()},
+        'tagging': {
+          'pos': pos.toJson(),
+          'open_class_lemma': lemma.toJson(),
+          'per_label': {
+            for (final label in {...tp.keys, ...fn.keys})
+              label: {
+                'tp': tp[label] ?? 0,
+                'fp': fp[label] ?? 0,
+                'fn': fn[label] ?? 0,
+              },
+          },
+        },
+        'evidence': {
+          'true_positive': evTp,
+          'predicted': evPred,
+          'gold': evGold,
+        },
+        'status_confusion': confusion,
         'fact_extraction': {
           'precision': p,
           'recall': rc,

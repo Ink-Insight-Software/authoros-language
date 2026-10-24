@@ -95,7 +95,8 @@ class GroundedProposalGenerator implements ProposalGenerator {
               quote: src.text.substring(fact.sentenceStart, fact.sentenceEnd),
             ),
           ],
-          rationale: 'The story already names ${p.text.split(' ').last}.',
+          rationale:
+              'The story already mentions ${p.text.replaceFirst(RegExp(r'^(?:to|from|into|onto|in|on|at|under|beneath|behind|beside|near|by)\s+', caseSensitive: false), '')}.',
         ),
       );
     }

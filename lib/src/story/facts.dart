@@ -4,6 +4,24 @@ library;
 
 import 'labels.dart';
 
+/// True when [a] and [b] name the same thing. Items and places are told apart by word
+/// lists, and a word like "gate" or "door" can be either depending on the sentence, so
+/// `item_gate` and `place_gate` are the same thing; characters are never merged with
+/// either.
+bool sameEntity(String? a, String? b) {
+  if (a == null || b == null) return false;
+  if (a == b) return true;
+  String? core(String id) {
+    for (final p in const ['item_', 'place_']) {
+      if (id.startsWith(p)) return id.substring(p.length);
+    }
+    return null;
+  }
+
+  final ca = core(a), cb = core(b);
+  return ca != null && ca == cb;
+}
+
 /// A place, a destination or a recipient: the words used, and the entity they name
 /// when one was found.
 class SlotValue {
@@ -95,12 +113,12 @@ class Fact {
   final bool unresolvedSubject;
 
   bool involves(String entityId) =>
-      subject == entityId ||
-      object == entityId ||
-      recipient?.entityId == entityId ||
-      location?.entityId == entityId ||
-      destination?.entityId == entityId ||
-      origin?.entityId == entityId;
+      sameEntity(subject, entityId) ||
+      sameEntity(object, entityId) ||
+      sameEntity(recipient?.entityId, entityId) ||
+      sameEntity(location?.entityId, entityId) ||
+      sameEntity(destination?.entityId, entityId) ||
+      sameEntity(origin?.entityId, entityId);
 
   Map<String, dynamic> toJson() => {
     'fact_id': factId,
@@ -131,9 +149,14 @@ class EvidenceRef {
     required this.start,
     required this.end,
     required this.quote,
+    this.kind,
   });
 
   final String sourceId;
+
+  /// Where the passage sits in the project's hierarchy: `canon`, `manuscript`,
+  /// `note` or `discovery`. Null when the caller did not say.
+  final String? kind;
   final int start;
   final int end;
 
@@ -145,5 +168,6 @@ class EvidenceRef {
     'start': start,
     'end': end,
     'quote': quote,
+    if (kind != null) 'kind': kind,
   };
 }

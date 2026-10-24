@@ -96,12 +96,13 @@ class StoryIndex {
   }
 
   EvidenceRef _refOf(Fact f) {
-    final text = source(f.sourceId)!.text;
+    final src = source(f.sourceId)!;
     return EvidenceRef(
       sourceId: f.sourceId,
       start: f.sentenceStart,
       end: f.sentenceEnd,
-      quote: text.substring(f.sentenceStart, f.sentenceEnd),
+      quote: src.text.substring(f.sentenceStart, f.sentenceEnd),
+      kind: src.kind.name,
     );
   }
 
