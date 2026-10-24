@@ -6,12 +6,13 @@ description: >-
   Companion depends on it; applications that want characters in their own voice
   can too, and none of them copies it.
 publish_to: none
-version: 0.1.0
+version: 0.2.0
 
 environment:
   sdk: ^3.12.0
 
 dependencies:
+  http: ^1.2.0
   # The shared AuthorOS core, pinned by commit the way every application pins it.
   authoros_core:
     git:

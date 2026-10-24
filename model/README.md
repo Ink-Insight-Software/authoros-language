@@ -52,6 +52,53 @@ similar clauses. So this pipeline does not generate training text with any AI
 service, and the code in this directory contains no such step. Read the terms of
 whatever you use before putting its output in `data/`.
 
+## Calling it from Dart
+
+The Dart package has the client for this server (`lib/src/model/`), so an application
+can have characters greet and chat in the model's words, with the authored lines as a
+floor:
+
+```dart
+final chat = ModelBackedChat(
+  client: OwnModelClient(
+    server: Uri.parse('https://model.example.com'),   // or http://127.0.0.1:8808 locally
+    token: token,                                      // the author's own, from their settings
+  ),
+);
+final reply = await chat.say(const ChatRequest(
+  moment: ChatMoment.chat,
+  authorLine: 'Good morning!',
+  tone: VoiceTone.sardonic,
+  length: CommunicationLength.terse,
+));
+// reply.text: one line (null only for a farewell the model could not give)
+// reply.usedModel: the model wrote it, and it passed the guard
+// reply.fallback: why the authored line was used instead, else null
+```
+
+- **What it sends:** the moment, the author's line, the tone and the length, and
+  nothing else, with the token only in the `Authorization` header.
+- **The guard** (`ChatGuard`) refuses a reply that is not one short plain line, that
+  names someone or somewhere the author did not, that has a digit, markup or
+  quotation marks, or that only repeats the author. It shares one case list with the
+  authoring checker and the writing screen (`writer/rule_cases.json`). **It cannot
+  judge whether a reply is any good**: a v0 model passes it while saying "Good
+  night, citizen." to a welcome back. Quality comes from the training lines.
+- **The fallback** is the rule-based layer's greeting, welcome or acknowledgement in
+  the same tone; a farewell has none, so a failed farewell says nothing.
+- **A token must not cross a network in the clear:** `http` is refused except for
+  this machine. Put your own TLS in front of `serve.py`.
+
+Try it from the command line:
+
+```
+AUTHOROS_MODEL_TOKEN=... dart run tool/chat.dart --server http://127.0.0.1:8808 \
+  --moment chat --author "Good morning!" --tone sardonic --length terse
+```
+
+`test/own_model_live_test.dart` runs the client against a real server when
+`AUTHOROS_MODEL_URL` and `AUTHOROS_MODEL_TOKEN` are set.
+
 ## Writing the training lines
 
 The model gets better from lines you write, in the voice of each tone, so the format
