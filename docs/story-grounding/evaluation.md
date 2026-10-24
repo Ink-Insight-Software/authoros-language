@@ -97,7 +97,7 @@ the new tool and reproduced every headline number).
 - **Clean, short sentences.** Real fiction has long, embedded and elliptical sentences,
   dialect and fragments. 100% POS on short clean sentences says little about a novel.
 - **Rules tuned to known vocabulary.** The tagger and extractor use word lists; the
-  held-out words were mostly in or near them. Unseen vocabulary will do worse, and an
+  held-out words were probably in or near them (I did not measure the overlap). Unseen vocabulary will do worse, and an
   unknown word at the start of a sentence is guessed to be a name.
 - **Not annotator-checked.** The milestone A exit check (two independent labellers,
   measured agreement) is not done. Some labels are conventions this author chose.
