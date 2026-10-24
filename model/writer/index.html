@@ -1,0 +1,146 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Voice Lines</title>
+<meta name="description" content="Write the lines a character model learns from, in each voice.">
+<style>
+  :root {
+    --bg: #faf7f2; --panel: #ffffff; --ink: #231f1a; --muted: #6b6258; --rule: #e3dccf;
+    --accent: #8a4b14; --accent-ink: #ffffff; --ok: #2f6b3a; --warn: #9a5b00; --bad: #a3261f;
+    --chip: #f0e9dc;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --bg: #17140f; --panel: #211d17; --ink: #f1ebe0; --muted: #a79d8e; --rule: #3a342a;
+      --accent: #e0a35c; --accent-ink: #1a1308; --ok: #7bc88a; --warn: #e3b25a; --bad: #f08a82;
+      --chip: #2c261d;
+    }
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; background: var(--bg); color: var(--ink);
+         font: 16px/1.5 system-ui, -apple-system, "Segoe UI", sans-serif; }
+  main { max-width: 860px; margin: 0 auto; padding: 24px 16px 64px; }
+  h1 { font-size: 1.5rem; margin: 0 0 4px; }
+  h2 { font-size: 1.1rem; margin: 0 0 12px; }
+  p.lede { color: var(--muted); margin: 0 0 20px; }
+  section { background: var(--panel); border: 1px solid var(--rule); border-radius: 12px;
+            padding: 16px; margin-bottom: 16px; }
+  label { display: block; font-weight: 600; font-size: .9rem; margin: 12px 0 4px; }
+  .hint { color: var(--muted); font-size: .85rem; font-weight: 400; }
+  input[type=text], input[type=email], select, textarea {
+    width: 100%; padding: 10px 12px; font: inherit; color: var(--ink);
+    background: var(--bg); border: 1px solid var(--rule); border-radius: 8px; }
+  textarea { min-height: 76px; resize: vertical; }
+  .row { display: grid; grid-template-columns: repeat(auto-fit, minmax(170px, 1fr)); gap: 12px; }
+  button { font: inherit; cursor: pointer; border-radius: 8px; padding: 9px 16px;
+           border: 1px solid var(--rule); background: var(--chip); color: var(--ink); }
+  button.primary { background: var(--accent); color: var(--accent-ink); border-color: var(--accent); font-weight: 600; }
+  button:disabled { opacity: .5; cursor: not-allowed; }
+  button.link { background: none; border: none; padding: 0; color: var(--accent); text-decoration: underline; }
+  .check { display: flex; gap: 10px; align-items: flex-start; margin-top: 14px; }
+  .check input { margin-top: 5px; }
+  .problems { margin: 8px 0 0; padding: 0; list-style: none; font-size: .88rem; }
+  .problems li { color: var(--bad); }
+  .problems li.ok { color: var(--ok); }
+  .meta { display: flex; justify-content: space-between; gap: 12px; color: var(--muted); font-size: .85rem; margin-top: 4px; }
+  .actions { display: flex; gap: 12px; align-items: center; margin-top: 16px; flex-wrap: wrap; }
+  #message { min-height: 1.4em; font-size: .92rem; }
+  #message.ok { color: var(--ok); } #message.err { color: var(--bad); }
+  table { border-collapse: collapse; width: 100%; font-size: .88rem; }
+  th, td { text-align: center; padding: 6px 4px; border-bottom: 1px solid var(--rule); }
+  th:first-child, td:first-child { text-align: left; }
+  td.short { color: var(--warn); } td.met { color: var(--ok); font-weight: 600; }
+  .scroll { overflow-x: auto; }
+  .line { border-top: 1px solid var(--rule); padding: 10px 0; }
+  .line:first-child { border-top: 0; }
+  .line .said { color: var(--muted); font-size: .9rem; }
+  .line .tags { display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 4px; }
+  .chip { background: var(--chip); border-radius: 999px; padding: 1px 10px; font-size: .78rem; }
+  .chip.approved { color: var(--ok); } .chip.rejected { color: var(--bad); } .chip.submitted { color: var(--warn); }
+  .line .tools { margin-top: 4px; display: flex; gap: 14px; }
+  .hidden { display: none !important; }
+  .who { display: flex; justify-content: space-between; align-items: center; gap: 12px; flex-wrap: wrap; }
+  .sr { position: absolute; left: -9999px; }
+</style>
+</head>
+<body>
+<main>
+  <h1>Voice Lines</h1>
+  <p class="lede">Write what a character says in each voice. These lines teach the model, so write them the way
+  that character would really say them. Nothing is used until it has been reviewed.</p>
+
+  <section id="signin">
+    <h2>Sign in</h2>
+    <p class="hint">We email you a link; no password. It opens this page signed in.</p>
+    <label for="email">Email</label>
+    <input id="email" type="email" autocomplete="email" placeholder="you@example.com">
+    <div class="actions">
+      <button id="send" class="primary" type="button">Email me a link</button>
+      <span id="signin-message" role="status"></span>
+    </div>
+  </section>
+
+  <div id="app" class="hidden">
+    <section class="who">
+      <div><strong id="who-email"></strong></div>
+      <button id="signout" class="link" type="button">Sign out</button>
+    </section>
+
+    <section>
+      <h2>Add a line</h2>
+      <form id="form" novalidate>
+        <div class="row">
+          <div><label for="voice">Voice</label><select id="voice"></select></div>
+          <div><label for="length">How much they say</label><select id="length"></select></div>
+          <div><label for="moment">Moment</label><select id="moment"></select></div>
+        </div>
+        <div id="said-wrap">
+          <label for="said">What the author says <span class="hint">(one line)</span></label>
+          <input id="said" type="text" autocomplete="off" placeholder="Good morning!">
+        </div>
+        <label for="reply">What the character says <span class="hint">(one line, 30 words at most)</span></label>
+        <textarea id="reply" placeholder="Is it? Do tell me what is good about it."></textarea>
+        <div class="meta"><span id="count">0 words</span><span>no names, digits, quotation marks or markup</span></div>
+        <ul id="problems" class="problems" aria-live="polite"></ul>
+
+        <label for="writtenBy">Your name <span class="hint">(kept with each line)</span></label>
+        <input id="writtenBy" type="text" autocomplete="name" maxlength="80">
+        <label for="rights">Your right to use these lines</label>
+        <select id="rights">
+          <option value="own">I wrote them myself</option>
+          <option value="public-domain">They are in the public domain</option>
+          <option value="licensed">They are licensed for this use</option>
+        </select>
+        <div class="check">
+          <input id="human" type="checkbox">
+          <label for="human" style="margin:0;font-weight:400">I wrote this line myself. No AI service
+          wrote or rewrote it. <span class="hint">Lines written by an AI service cannot be used to train the model.</span></label>
+        </div>
+        <div class="actions">
+          <button id="add" class="primary" type="submit" disabled>Add line</button>
+          <span id="message" role="status"></span>
+        </div>
+      </form>
+    </section>
+
+    <section>
+      <h2>Your lines so far</h2>
+      <p class="hint">Lines of yours per voice and moment, against a first useful amount. An amber number is under target.</p>
+      <div class="scroll"><table id="coverage"></table></div>
+    </section>
+
+    <section>
+      <h2>Your lines</h2>
+      <p class="hint">You can edit or remove a line until it is reviewed.</p>
+      <div id="lines"></div>
+    </section>
+  </div>
+</main>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
+<script src="rules.js"></script>
+<script src="app.js"></script>
+</body>
+</html>

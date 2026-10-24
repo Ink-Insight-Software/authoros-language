@@ -1,0 +1,22 @@
+[
+  {"text": "Is it? Do tell me what is good about it.", "ok": true},
+  {"text": "Ah. There you are.", "ok": true},
+  {"text": "Oh, hello... I am glad you are here. Sorry, I am not very good at this.", "ok": true},
+  {"text": "Well. I did wonder. Now then.", "ok": true},
+  {"text": "I'm fine, thank you. And you?", "ok": true},
+  {"text": "Not now.", "ok": true},
+  {"text": "It's rather good, isn't it — the weather, I mean.", "ok": true},
+  {"text": "Ah, Tom. There you are.", "ok": false, "why": "name"},
+  {"text": "You came all the way from Paris?", "ok": false, "why": "place"},
+  {"text": "Good day, Mr. Rochester.", "ok": false, "why": "title"},
+  {"text": "Good day, sir. Lord, what a morning.", "ok": false, "why": "title word"},
+  {"text": "Come back in 5 minutes.", "ok": false, "why": "digit"},
+  {"text": "**Sighs.** There you are.", "ok": false, "why": "markup"},
+  {"text": "\"Ah.\" There you are.", "ok": false, "why": "quotes"},
+  {"text": "- Ah. There you are.", "ok": false, "why": "list marker"},
+  {"text": "Ah <there> you are.", "ok": false, "why": "angle brackets"},
+  {"text": "", "ok": false, "why": "empty"},
+  {"text": "   ", "ok": false, "why": "blank"},
+  {"text": "word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word", "ok": false, "why": "31 words"},
+  {"text": "word word word word word word word word word word word word word word word word word word word word word word word word word word word word word word", "ok": true, "why": "30 words"}
+]
