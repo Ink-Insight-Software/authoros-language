@@ -2,6 +2,17 @@
 
 ## Unreleased
 
+- **Character Knowledge Continuity** (`lib/src/story/knowledge*.dart`,
+  `corpus/knowledge_v1/`, `docs/story-grounding/character-knowledge.md`). What a character
+  knows, believes, suspects or has wrong at a story point, how they learned it (told,
+  witnessed, overheard, read, inferred, author-entered), with the exact passage. Being told
+  is believing unless the narrator confirms it; no record is UNKNOWN, never "does not know";
+  a belief stays separate from what the story says; a possible knowledge leak is a review
+  item with both passages. Story time is an explicit timeline. A derived index: rebuilt from
+  passages and author records, never a second source of truth. Rule-based, deterministic and
+  versioned (`kStoryPipelineVersion`). Small-sample, author-written evaluation; see
+  `docs/story-grounding/evaluation.md`.
+
 - **Story grounding** (`lib/src/story/`, `docs/story-grounding/`,
   `corpus/story_v1/`). Ask an author's own text a question and get an answer that
   says whether it is STATED, DERIVED, UNKNOWN or CONFLICT, with the exact sentence it

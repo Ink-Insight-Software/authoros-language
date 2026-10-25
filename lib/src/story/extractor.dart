@@ -620,8 +620,20 @@ class FactExtractor {
             ids.add(m.entityId);
           }
         }
-        return ids.length == 1
-            ? _Ref(ids.first, _named(ids.first, text))
+        // A candidate named earlier in this very sentence ("Mara told Iven that she ...")
+        // beats one named only in the sentence before, when it is the only one.
+        final here = <String>{
+          for (final m in _history)
+            if (m.sentence == _sentenceCounter &&
+                m.type == EntityType.character &&
+                registry.byId(m.entityId)?.pronouns == form)
+              m.entityId,
+        };
+        final pick = here.length == 1
+            ? here.first
+            : (ids.length == 1 ? ids.first : null);
+        return pick != null
+            ? _Ref(pick, _named(pick, text))
             : _Ref(null, text, unresolved: true);
       case 'it':
         final window = _window()

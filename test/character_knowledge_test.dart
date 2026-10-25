@@ -108,6 +108,27 @@ void main() {
       expect(a.route, AcquisitionRoute.witnessed);
     });
 
+    test(
+      '"she" inside what was told is the teller when only the teller is named in that sentence',
+      () {
+        final a = _story([
+          ('c1', 'Rowan watched Edda and Mara leave.'),
+          ('c2', 'Mara told Iven that she hid the key.'),
+        ]).askKnowledge('Does Iven know Mara hid the key?');
+        expect(a.state, KnowledgeState.believes);
+        expect(a.evidenceSourceIds, {'s2'});
+      },
+    );
+
+    test(
+      '"she" stays unresolved when two women are named in the same sentence',
+      () {
+        final index = _story([('c1', 'Mara told Edda that she hid the key.')]);
+        expect(index.facts.single.subject, isNull);
+        expect(index.facts.single.unresolvedSubject, isTrue);
+      },
+    );
+
     test('a negated or hedged telling records nothing at all', () {
       for (final text in [
         'Mara did not tell Iven that she hid the key.',
@@ -176,6 +197,41 @@ void main() {
         expect(a.evidenceSourceIds, {'s1', 's2'});
       },
     );
+  });
+
+  group('continuity anomalies and repeatability', () {
+    test(
+      'knowing and later recorded as unaware is a conflict, with both passages',
+      () {
+        final a = _story([
+          ('chapter_01', 'Iven learned that Mara hid the key.'),
+          ('chapter_03', 'Iven did not know that Mara hid the key.'),
+        ]).askKnowledge('Does Iven know Mara hid the key by Chapter 3?');
+        expect(a.status, EvidenceStatus.conflict);
+        expect(a.note, 'recorded as knowing earlier');
+        expect(a.evidenceSourceIds, {'s1', 's2'});
+      },
+    );
+
+    test('the same inputs always give the same events and answers', () {
+      String run() {
+        final index = _story([
+          ('chapter_01', 'Mara hid the key beneath the chapel floor.'),
+          ('chapter_02', 'Mara told Iven that she hid the key.'),
+          ('chapter_03', 'Iven dug beneath the chapel floor.'),
+        ]);
+        return jsonEncode({
+          'events': [for (final e in index.knowledge.events) e.toJson()],
+          'answer': index
+              .askKnowledge('Who knows Mara hid the key by Chapter 2?')
+              .toJson(),
+          'leaks': [for (final l in index.knowledgeLeaks()) l.toJson()],
+          'version': kStoryPipelineVersion,
+        });
+      }
+
+      expect(run(), run());
+    });
   });
 
   group('story time', () {

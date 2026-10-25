@@ -1,0 +1,103 @@
+{
+  "split": "heldout",
+  "records": 17,
+  "event_extraction": {
+    "precision": 0.9375,
+    "recall": 0.9375,
+    "f1": 0.9375,
+    "matched": 15,
+    "gold": 16,
+    "produced": 16
+  },
+  "answers_oracle": {
+    "correct": 15,
+    "total": 15
+  },
+  "answers_end_to_end": {
+    "correct": 15,
+    "total": 15
+  },
+  "matches_canon": {
+    "correct": 13,
+    "total": 13
+  },
+  "note": {
+    "correct": 2,
+    "total": 2
+  },
+  "by_kind": {
+    "knows": {
+      "correct": 13,
+      "total": 13
+    },
+    "who_knows": {
+      "correct": 1,
+      "total": 1
+    },
+    "when_learned": {
+      "correct": 1,
+      "total": 1
+    },
+    "leak_check": {
+      "correct": 2,
+      "total": 2
+    }
+  },
+  "by_knowledge_state": {
+    "KNOWS": {
+      "correct": 5,
+      "total": 5
+    },
+    "null": {
+      "correct": 3,
+      "total": 3
+    },
+    "BELIEVES": {
+      "correct": 2,
+      "total": 2
+    },
+    "UNAWARE_IN_TEXT": {
+      "correct": 1,
+      "total": 1
+    },
+    "MISREMEMBERS": {
+      "correct": 1,
+      "total": 1
+    },
+    "AUTHOR_CONFIRMED_UNAWARE": {
+      "correct": 1,
+      "total": 1
+    }
+  },
+  "state_confusion": {
+    "KNOWS": {
+      "KNOWS": 5
+    },
+    "null": {
+      "null": 3
+    },
+    "BELIEVES": {
+      "BELIEVES": 2
+    },
+    "UNAWARE_IN_TEXT": {
+      "UNAWARE_IN_TEXT": 1
+    },
+    "MISREMEMBERS": {
+      "MISREMEMBERS": 1
+    },
+    "AUTHOR_CONFIRMED_UNAWARE": {
+      "AUTHOR_CONFIRMED_UNAWARE": 1
+    }
+  },
+  "leaks": {
+    "correct": 2,
+    "total": 2
+  },
+  "errors": {
+    "events": [
+      "kh08_who_knows_by_a_point missed char_iven|hide|char_mara|item_key||KNOWS|TOLD|h08c   produced: char_edda|hide|char_mara|item_key||KNOWS|WITNESSED|h08b ; char_iven|hide|null|item_key||BELIEVES|TOLD|h08c ; char_mara|hide|char_mara|item_key||KNOWS|EXPERIENCED|h08a",
+      "kh08_who_knows_by_a_point extra  char_iven|hide|null|item_key||BELIEVES|TOLD|h08c"
+    ],
+    "answers": []
+  }
+}

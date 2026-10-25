@@ -117,3 +117,74 @@ the new tool and reproduced every headline number).
 4. Run the pipeline in the actual browser build and report latency on a 100,000-word
    manuscript.
 5. Re-run this table on every change to the rules, with the dataset hashes.
+
+## Character Knowledge Continuity
+
+Same discipline as above: `corpus/knowledge_v1/heldout.jsonl` (17 records) was committed
+(`cdd2c36`) before any knowledge rule existed; the rules were developed on `dev.jsonl` (21
+records) and on sentences of my own; the held-out set was run **once** on the finished code
+(`e90757e`), report in `results/knowledge-heldout-first-run.json`. Run it with
+`dart run tool/knowledge_eval.dart heldout`.
+
+| | Dev (rules written against it) | **Held-out, first run** (`e90757e`) |
+|---|---|---|
+| Records / question records | 21 / 18 | 17 / 17 |
+| Event extraction P / R / F1 (against gold events) | 100 / 100 / 100 (10 of 10) | **93.8 / 93.8 / 93.8** (15 of 16) |
+| Answers, from the gold-structured query | 18/18 | 15/15 |
+| Answers, from the question text | 18/18 | 15/15 |
+| `matches_canon` flag / note | 15/15 · 2/2 | 13/13 · 2/2 |
+| Leak review items (exact set per record) | 3/3 | 2/2 |
+
+Correct = status, knowledge state, acquisition route and evidence ids all equal the gold (for
+who-knows: the set of characters; for when-learned: the story point; for leaks: the exact set of
+(character, action passage, establishing passage)). Held-out by kind: knows 13/13, who-knows
+1/1, when-learned 1/1, leak check 2/2; by state: KNOWS 5/5, BELIEVES 2/2, UNAWARE_IN_TEXT 1/1,
+MISREMEMBERS 1/1, AUTHOR_CONFIRMED_UNAWARE 1/1, and 3/3 of the questions whose right answer is
+"no state" (UNKNOWN or CONFLICT).
+
+### The held-out miss, reviewed
+
+| Miss | Class | Cause | Disposition |
+|---|---|---|---|
+| In `kh08`, "Mara told Iven that she hid the key." (Chapter 3, after "Edda watched Mara hide the key." in Chapter 2): the event for Iven had an unresolved proposition subject instead of Mara | extractor (**a real defect**) | "she" had two candidates, Mara (this sentence) and Edda (named in the sentence before), and the rule treated them as equal. Not guessing was the right default; preferring a candidate named earlier in the *same* sentence when it is the only one was the missing rule. The question set still passed because the unresolved event did not change who knows at Chapter 2 | **Post-hoc fix**, with two unit tests on new sentences (one where it resolves, one where two women are named in the same sentence and it stays unresolved). Not re-run on held-out |
+
+Other changes after the run, none from a held-out result: a continuity check for *knowing,
+then recorded as unaware* (CONFLICT, both passages); `kStoryPipelineVersion` and a test that
+the same inputs give identical output; readable default labels for timeline ids. Before the
+run, my own probe sentences and unit tests found and fixed: `sameEntity(null, null)` was false,
+which broke "belief contradicts canon" for any state with no object; a negated or hedged
+"told" wrongly recorded the clause; "was open" tagged `open` as a verb; a story point
+phrase swallowed "in the cellar"; and one dev label (kd08) that said null where the story
+did contradict the belief.
+
+### What these numbers do not show
+
+Everything in [the earlier list](#what-these-numbers-do-not-show) applies, and more:
+
+- **17 held-out records, 17 questions.** One mistake is 6 points. Each phenomenon appears once
+  or twice.
+- **Written by the author of the rules**, after reading the handover, so the held-out set tests
+  the design I already had, not the cases a different reader would think of.
+- **Routes and states not in the held-out set**: OVERHEARD, READ, INFERRED and SUSPECTS appear
+  only in the dev set, so their held-out score is untested.
+- **The leak check implements one pattern** (a hiding or placement, then another character
+  acting on that object or place). Two of two on a rule written for exactly that pattern says
+  nothing about leaks in general; false-positive rate on a real manuscript is unknown.
+- **No flashbacks, unreliable narrators or non-linear timelines**, which the handover names as
+  reasons a flag may be wrong. The timeline here is a given order.
+- **No real manuscript, no browser, no author reading the answers.**
+
+### Answer to the handover's question 4: what examples and tests are needed
+
+To *measure* each part, per part, with the part's own score (never one overall number):
+
+| Part | Needed before trusting it | Exists |
+|---|---|---|
+| Tagging | A few hundred sentences of fiction not seen by the rule author, labelled by two people; per-label P/R/F1 | 55 records (story_v1); one author |
+| Retrieval | A few hundred question/passage pairs from real manuscripts, including paraphrase, passive, pronouns and unanswerable questions | 55 records |
+| Character knowledge | Per state × route × timeline shape (same scene, later scene, later chapter, flashback): at least ~20 each, from several authors' text; the false-belief and told-but-unconfirmed cases in particular | 38 records, ~1–3 per case |
+| UNKNOWN handling | Questions whose honest answer is UNKNOWN *because* of each cause (silent, later acquisition, possibility, negation, ambiguity, no timeline point) with the cause as the label | Every cause has 1–3 cases |
+| Continuity flags | Real drafts with author-marked true and false leaks; report precision (how many flags the author keeps) separately from recall | 5 synthetic cases, one pattern |
+
+Track dataset version (`MANIFEST.json` hashes), schema version, `kStoryPipelineVersion` and
+the commit with every result.

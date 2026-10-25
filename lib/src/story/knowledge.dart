@@ -771,6 +771,22 @@ class KnowledgeIndex {
         trace: trace,
       );
     }
+    // Knowing and then recorded as unaware is a continuity anomaly, not a change of state
+    // the system may settle: report both passages.
+    if (upTo.last.state.isUnaware) {
+      final earlier = upTo
+          .where((e) => e.state == KnowledgeState.knows)
+          .toList();
+      if (earlier.isNotEmpty) {
+        return KnowledgeAnswer(
+          kind: 'knows',
+          status: EvidenceStatus.conflict,
+          note: 'recorded as knowing earlier',
+          evidence: [earlier.last.evidence, upTo.last.evidence],
+          trace: trace,
+        );
+      }
+    }
     // The event that started the state the character is in now.
     var start = upTo.length - 1;
     while (start > 0 && upTo[start - 1].state == upTo.last.state) {
