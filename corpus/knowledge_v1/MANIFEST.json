@@ -1,0 +1,9 @@
+{
+  "schema_version": "knowledge-continuity/1",
+  "files": {
+    "heldout.jsonl": {
+      "records": 17,
+      "sha256": "d28b29547270c5683c9f5f0a2416c1c9a2c4e389abfd020ef2d464202a690290"
+    }
+  }
+}
