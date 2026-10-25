@@ -16,9 +16,16 @@ import 'tagger.dart';
 import 'tokenizer.dart';
 
 class ExtractionOutput {
-  const ExtractionOutput({required this.sentences, required this.facts});
+  const ExtractionOutput({
+    required this.sentences,
+    required this.facts,
+    this.cues = const [],
+  });
   final List<Sentence> sentences;
   final List<Fact> facts;
+
+  /// What the sentences say characters took in (see [KnowledgeCue]).
+  final List<KnowledgeCue> cues;
 }
 
 class _Np {
@@ -79,6 +86,7 @@ class FactExtractor {
   ExtractionOutput extract(String sourceId, String text) {
     final sentences = tagger.tag(_tokenizer.tokenize(text));
     final facts = <Fact>[];
+    final cues = <KnowledgeCue>[];
     final out = <Sentence>[];
     var n = 0;
     for (final s in sentences) {
@@ -91,9 +99,10 @@ class FactExtractor {
         n++;
         facts.add(_numbered(f, '${sourceId}_f$n'));
       }
+      cues.addAll(w.cues);
       out.add(s.withTokens(w.tokens));
     }
-    return ExtractionOutput(sentences: out, facts: facts);
+    return ExtractionOutput(sentences: out, facts: facts, cues: cues);
   }
 
   Fact _numbered(Fact f, String id) => Fact(
@@ -142,6 +151,35 @@ class FactExtractor {
     return ids;
   }
 
+  /// The main fact of a clause typed as a question or a note ("Mara hid the key"), with
+  /// no effect on the extractor's memory of earlier sentences: no pronoun history, fact
+  /// numbering or unregistered names are changed.
+  Fact? propositionFrom(String clause) {
+    final savedHistory = List<_Mention>.of(_history);
+    final savedSurface = Map<String, String>.of(_surface);
+    final savedNames = {...unregisteredNames};
+    final savedSentence = _sentenceCounter, savedOrder = _order;
+    try {
+      final out = extract(
+        'proposition',
+        '${clause.trim().replaceAll(RegExp(r'[.?!]+$'), '')}.',
+      );
+      return out.facts.isEmpty ? null : out.facts.first;
+    } finally {
+      _history
+        ..clear()
+        ..addAll(savedHistory);
+      _surface
+        ..clear()
+        ..addAll(savedSurface);
+      unregisteredNames
+        ..clear()
+        ..addAll(savedNames);
+      _sentenceCounter = savedSentence;
+      _order = savedOrder;
+    }
+  }
+
   // ---- sentence level --------------------------------------------------------------
 
   void _sentence(_Work w) {
@@ -164,20 +202,70 @@ class FactExtractor {
       );
       return;
     }
-    // "X said that ..." / "X believed that ...": the main clause only introduces.
+    // "X said that ..." / "X believed that ..." / "X knew that ...": the main clause only
+    // introduces. What kind of verb it is decides who the clause is attributed to.
     final thatAt = _complementAt(t);
     if (thatAt != null) {
-      final (verbIdx, thatIdx, belief) = thatAt;
+      final (verbIdx, thatIdx, kind) = thatAt;
+      final lemma = t[verbIdx].lemma ?? '';
       final speaker = _subjectBefore(w, verbIdx);
-      _registerNpsBetween(w, verbIdx + 1, thatIdx, recipients: true);
-      _clauses(
-        w,
-        thatIdx + 1,
-        _end(t),
-        attribution: Attribution(
+      final recipient = _registerNpsBetween(w, verbIdx + 1, thatIdx);
+      final (negated, possible) = _mainFlags(t, verbIdx);
+      // "Mara did not tell Iven that ...", "Mara might tell Iven that ...": nothing was
+      // said, so the clause is not asserted by anyone. (A negated or hedged *knowing*
+      // still presupposes the clause, so that kind goes on.)
+      if ((negated || possible) && kind != 'factive') return;
+      final before = w.facts.length;
+      // The narrator also asserts what a character knew, saw or noticed; what was said
+      // or read, believed or misremembered is the character's, not the narrator's.
+      final attribution = switch (kind) {
+        'factive' => null,
+        'belief' || 'misremember' => Attribution(
           speaker: speaker?.entityId,
-          kind: belief ? 'belief' : 'reported',
+          kind: 'belief',
+          verb: lemma,
         ),
+        // Said or told: the speaker is the subject. Read or heard: the source is unknown.
+        _ => Attribution(
+          speaker: StoryLexicon.intakeVerbs.contains(lemma)
+              ? null
+              : speaker?.entityId,
+          kind: 'reported',
+          verb: lemma,
+          recipient: recipient?.entityId,
+        ),
+      };
+      _clauses(w, thatIdx + 1, _end(t), attribution: attribution);
+      _cue(
+        w,
+        lemma,
+        kind,
+        speaker?.entityId,
+        recipient?.entityId,
+        negated,
+        possible,
+        before,
+      );
+      return;
+    }
+    // "X saw Mara hide the key": a perception verb, a noun phrase, a bare verb.
+    final seen = _perceptionAt(w);
+    if (seen != null) {
+      final (verbIdx, clauseStart) = seen;
+      final lemma = t[verbIdx].lemma ?? '';
+      final knower = _subjectBefore(w, verbIdx);
+      final (negated, possible) = _mainFlags(t, verbIdx);
+      final before = w.facts.length;
+      _clauses(w, clauseStart, _end(t));
+      _cue(
+        w,
+        lemma,
+        'perceived',
+        knower?.entityId,
+        null,
+        negated,
+        possible,
+        before,
       );
       return;
     }
@@ -236,19 +324,26 @@ class FactExtractor {
     return before ?? const _Ref(null, '', unresolved: true);
   }
 
-  /// The speech or belief verb that introduces a "that" clause, with its position.
-  (int, int, bool)? _complementAt(List<Token> t) {
+  /// The verb that introduces a "that" clause, the position of "that", and what kind of
+  /// verb it is: `reported` (said, told, read, heard), `belief`, `factive` (knew,
+  /// learned, saw that...), or `misremember`.
+  (int, int, String)? _complementAt(List<Token> t) {
     for (var i = 0; i < t.length; i++) {
       if (t[i].pos == Upos.sconj && t[i].lower == 'that') {
         for (var k = i - 1; k >= 0 && k >= i - 4; k--) {
           if (t[k].pos == Upos.verb) {
             final lemma = t[k].lemma ?? '';
-            final speech = StoryLexicon.speechVerbs.contains(lemma);
-            final belief = StoryLexicon.beliefVerbs.contains(lemma);
-            if (speech || belief) {
-              return (k, i, belief && !speech);
-            }
-            return null;
+            final kind = lemma == 'misremember'
+                ? 'misremember'
+                : StoryLexicon.speechVerbs.contains(lemma) ||
+                      StoryLexicon.intakeVerbs.contains(lemma)
+                ? 'reported'
+                : StoryLexicon.factiveVerbs.contains(lemma)
+                ? 'factive'
+                : StoryLexicon.beliefVerbs.contains(lemma)
+                ? 'belief'
+                : null;
+            return kind == null ? null : (k, i, kind);
           }
         }
       }
@@ -256,7 +351,76 @@ class FactExtractor {
     return null;
   }
 
-  void _registerNpsBetween(_Work w, int a, int b, {bool recipients = false}) {
+  /// "saw Mara hide the key": the perception verb and where the embedded clause starts.
+  (int, int)? _perceptionAt(_Work w) {
+    final t = w.tokens;
+    for (var i = 0; i < t.length; i++) {
+      if (t[i].pos != Upos.verb ||
+          !StoryLexicon.perceptionVerbs.contains(t[i].lemma)) {
+        continue;
+      }
+      final np = _np(w, i + 1, t.length);
+      if (np == null || np.start != i + 1 || np.end >= t.length) continue;
+      final next = t[np.end];
+      if (next.pos == Upos.verb &&
+          _lex.verbReadings(next.lower).any((e) => e.form == VerbForm.base)) {
+        return (i, np.start);
+      }
+    }
+    return null;
+  }
+
+  /// Negation and hedging on the verb at [verb]: "did not know", "might know".
+  (bool, bool) _mainFlags(List<Token> t, int verb) {
+    var negated = false, possible = false;
+    var k = verb - 1;
+    while (k >= 0 &&
+        (t[k].pos == Upos.aux ||
+            t[k].pos == Upos.adv ||
+            t[k].pos == Upos.part)) {
+      final lw = t[k].lower;
+      if (lw == 'not' || lw == "n't" || lw == 'n\u2019t' || lw == 'never') {
+        negated = true;
+      }
+      if (t[k].pos == Upos.aux &&
+          (lw == 'might' || lw == 'may' || lw == 'could')) {
+        possible = true;
+      }
+      if (lw == 'perhaps' || lw == 'maybe') possible = true;
+      k--;
+    }
+    return (negated, possible);
+  }
+
+  void _cue(
+    _Work w,
+    String verb,
+    String kind,
+    String? knower,
+    String? recipient,
+    bool negated,
+    bool possible,
+    int factsBefore,
+  ) {
+    w.cues.add(
+      KnowledgeCue(
+        sourceId: w.sourceId,
+        sentenceStart: w.sentence.start,
+        sentenceEnd: w.sentence.end,
+        verb: verb,
+        kind: kind,
+        factOrders: [for (final f in w.facts.skip(factsBefore)) f.order],
+        knower: knower,
+        recipient: recipient,
+        negated: negated,
+        possible: possible,
+      ),
+    );
+  }
+
+  /// Marks the noun phrases between [a] and [b] as recipients, and returns the first.
+  _Ref? _registerNpsBetween(_Work w, int a, int b) {
+    _Ref? first;
     var i = a;
     while (i < b) {
       final np = _np(w, i, b);
@@ -266,8 +430,10 @@ class FactExtractor {
       }
       final ref = _refOf(w, np, place: false);
       _mark(w, np, ref, SemanticRole.recipient);
+      first ??= ref;
       i = np.end;
     }
+    return first;
   }
 
   _Ref? _subjectBefore(_Work w, int verb) {
@@ -893,4 +1059,5 @@ class _Work {
   final Sentence sentence;
   final List<Token> tokens;
   final facts = <Fact>[];
+  final cues = <KnowledgeCue>[];
 }

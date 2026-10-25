@@ -186,6 +186,15 @@ class RuleTagger implements Tagger {
           lemmas[i] = 'that';
           continue;
         case 'her':
+          // "saw her hide it": a pronoun, because a bare verb follows a perception verb.
+          if (i > 0 &&
+              tags[i - 1] == Upos.verb &&
+              StoryLexicon.perceptionVerbs.contains(lemmas[i - 1]) &&
+              baseAt(i + 1)) {
+            tags[i] = Upos.pron;
+            lemmas[i] = 'she';
+            continue;
+          }
           final nextIsContent =
               i + 1 < tokens.length &&
               _isWord(tokens[i + 1].text) &&
@@ -422,10 +431,8 @@ class RuleTagger implements Tagger {
             (prev == Upos.det ||
                 prev == Upos.adj ||
                 prev == Upos.num ||
-                (afterBe &&
-                    lastBe &&
-                    participle != null &&
-                    !baseOnly(readings)));
+                // "was open", "was broken": after a form of "be", an adjective.
+                (afterBe && lastBe));
         final participleAdjective =
             participle != null &&
             prev == Upos.det &&

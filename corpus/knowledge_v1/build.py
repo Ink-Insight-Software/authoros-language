@@ -54,8 +54,11 @@ def record(ex: dict, split: str) -> dict:
     q, e = ex["query"], ex["expected"]
     if q["kind"] not in KINDS:
         raise ValueError(f"{ex['id']}: unknown query kind {q['kind']!r}")
-    if q.get("story_time_id") and q["story_time_id"] not in tl:
-        raise ValueError(f"{ex['id']}: query time {q['story_time_id']!r} is not on the timeline")
+    at = q.get("story_time_id")
+    # A point is an entry on the timeline, or a group of entries ("chapter_02" is the end of
+    # chapter_02_scene_01, chapter_02_scene_03, ...).
+    if at and not any(t == at or t.startswith(at + "_") for t in tl):
+        raise ValueError(f"{ex['id']}: query time {at!r} is not on the timeline")
     for i in e.get("evidence_ids", []):
         if i not in ids:
             raise ValueError(f"{ex['id']}: evidence {i!r} is not one of {sorted(ids)}")

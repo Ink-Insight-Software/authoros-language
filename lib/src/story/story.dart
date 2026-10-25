@@ -11,6 +11,8 @@ export 'entities.dart';
 export 'extractor.dart' show ExtractionOutput, FactExtractor;
 export 'facts.dart';
 export 'index.dart';
+export 'knowledge.dart';
+export 'knowledge_question.dart';
 export 'labels.dart';
 export 'lexicon.dart' show StoryLexicon;
 export 'proposals.dart';
