@@ -18,3 +18,5 @@ jobs:
       - run: dart format --output=none --set-exit-if-changed .
       - run: dart analyze --fatal-infos
       - run: dart test
+      - name: Story corpus files are built from their sources
+        run: python3 -I corpus/story_v1/build.py --check

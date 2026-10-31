@@ -51,3 +51,9 @@ dart format --set-exit-if-changed .
 dart analyze --fatal-infos
 dart test
 ```
+
+## Story grounding
+
+`lib/src/story/` answers questions from an author's own text with exact source
+references, and says whether an answer is stated, derived, unknown or contradicted.
+See [docs/story-grounding/](docs/story-grounding/README.md).

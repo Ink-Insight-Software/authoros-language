@@ -27,3 +27,4 @@ export 'src/voice/relationship_state.dart';
 export 'src/voice/relationship_voice_composer.dart';
 export 'src/voice/topic_boundaries.dart';
 export 'src/voice/voice_profile.dart';
+export 'src/story/story.dart';
