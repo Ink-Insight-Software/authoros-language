@@ -1,0 +1,222 @@
+{
+  "split": "dev",
+  "records": 37,
+  "tagging": {
+    "pos": {
+      "correct": 351,
+      "total": 351
+    },
+    "open_class_lemma": {
+      "correct": 177,
+      "total": 177
+    },
+    "per_label": {
+      "PROPN": {
+        "tp": 35,
+        "fp": 0,
+        "fn": 0
+      },
+      "ADV": {
+        "tp": 8,
+        "fp": 0,
+        "fn": 0
+      },
+      "VERB": {
+        "tp": 41,
+        "fp": 0,
+        "fn": 0
+      },
+      "DET": {
+        "tp": 58,
+        "fp": 0,
+        "fn": 0
+      },
+      "ADJ": {
+        "tp": 15,
+        "fp": 0,
+        "fn": 0
+      },
+      "NOUN": {
+        "tp": 78,
+        "fp": 0,
+        "fn": 0
+      },
+      "ADP": {
+        "tp": 34,
+        "fp": 0,
+        "fn": 0
+      },
+      "PUNCT": {
+        "tp": 49,
+        "fp": 0,
+        "fn": 0
+      },
+      "PRON": {
+        "tp": 7,
+        "fp": 0,
+        "fn": 0
+      },
+      "AUX": {
+        "tp": 16,
+        "fp": 0,
+        "fn": 0
+      },
+      "PART": {
+        "tp": 5,
+        "fp": 0,
+        "fn": 0
+      },
+      "SCONJ": {
+        "tp": 2,
+        "fp": 0,
+        "fn": 0
+      },
+      "CCONJ": {
+        "tp": 1,
+        "fp": 0,
+        "fn": 0
+      },
+      "INTJ": {
+        "tp": 1,
+        "fp": 0,
+        "fn": 0
+      },
+      "NUM": {
+        "tp": 1,
+        "fp": 0,
+        "fn": 0
+      }
+    }
+  },
+  "evidence": {
+    "true_positive": 28,
+    "predicted": 28,
+    "gold": 28
+  },
+  "status_confusion": {
+    "STATED": {
+      "STATED": 21
+    },
+    "DERIVED": {
+      "DERIVED": 2
+    },
+    "UNKNOWN": {
+      "UNKNOWN": 5
+    },
+    "CONFLICT": {
+      "CONFLICT": 1
+    }
+  },
+  "fact_extraction": {
+    "precision": 1.0,
+    "recall": 1.0,
+    "f1": 1.0,
+    "matched": 41,
+    "gold": 41,
+    "produced": 41
+  },
+  "question_parsing": {
+    "intent": {
+      "correct": 29,
+      "total": 29
+    },
+    "relation": {
+      "correct": 29,
+      "total": 29
+    },
+    "entities": {
+      "correct": 29,
+      "total": 29
+    }
+  },
+  "answers_oracle": {
+    "correct": {
+      "correct": 29,
+      "total": 29
+    },
+    "status": {
+      "correct": 29,
+      "total": 29
+    }
+  },
+  "answers_end_to_end": {
+    "correct": {
+      "correct": 29,
+      "total": 29
+    },
+    "status": {
+      "correct": 29,
+      "total": 29
+    },
+    "evidence": {
+      "correct": 29,
+      "total": 29
+    },
+    "note": {
+      "correct": 2,
+      "total": 2
+    },
+    "offer_proposal": {
+      "correct": 29,
+      "total": 29
+    },
+    "attribution": {
+      "correct": 29,
+      "total": 29
+    },
+    "by_intent": {
+      "retrieve_location": {
+        "correct": 11,
+        "total": 11
+      },
+      "retrieve_time": {
+        "correct": 2,
+        "total": 2
+      },
+      "retrieve_manner": {
+        "correct": 1,
+        "total": 1
+      },
+      "retrieve_attribute": {
+        "correct": 3,
+        "total": 3
+      },
+      "retrieve_agent": {
+        "correct": 6,
+        "total": 6
+      },
+      "yes_no": {
+        "correct": 5,
+        "total": 5
+      },
+      "retrieve_object": {
+        "correct": 1,
+        "total": 1
+      }
+    },
+    "by_status": {
+      "STATED": {
+        "correct": 21,
+        "total": 21
+      },
+      "DERIVED": {
+        "correct": 2,
+        "total": 2
+      },
+      "UNKNOWN": {
+        "correct": 5,
+        "total": 5
+      },
+      "CONFLICT": {
+        "correct": 1,
+        "total": 1
+      }
+    }
+  },
+  "errors": {
+    "tagging": [],
+    "fact_extraction": [],
+    "question_parsing": [],
+    "answers": []
+  }
+}

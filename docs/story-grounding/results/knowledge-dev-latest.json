@@ -1,0 +1,86 @@
+{
+  "split": "dev",
+  "records": 21,
+  "event_extraction": {
+    "precision": 1.0,
+    "recall": 1.0,
+    "f1": 1.0,
+    "matched": 10,
+    "gold": 10,
+    "produced": 10
+  },
+  "answers_oracle": {
+    "correct": 18,
+    "total": 18
+  },
+  "answers_end_to_end": {
+    "correct": 18,
+    "total": 18
+  },
+  "matches_canon": {
+    "correct": 15,
+    "total": 15
+  },
+  "note": {
+    "correct": 2,
+    "total": 2
+  },
+  "by_kind": {
+    "knows": {
+      "correct": 15,
+      "total": 15
+    },
+    "who_knows": {
+      "correct": 2,
+      "total": 2
+    },
+    "leak_check": {
+      "correct": 3,
+      "total": 3
+    },
+    "when_learned": {
+      "correct": 1,
+      "total": 1
+    }
+  },
+  "by_knowledge_state": {
+    "KNOWS": {
+      "correct": 9,
+      "total": 9
+    },
+    "BELIEVES": {
+      "correct": 3,
+      "total": 3
+    },
+    "SUSPECTS": {
+      "correct": 1,
+      "total": 1
+    },
+    "null": {
+      "correct": 2,
+      "total": 2
+    }
+  },
+  "state_confusion": {
+    "KNOWS": {
+      "KNOWS": 9
+    },
+    "BELIEVES": {
+      "BELIEVES": 3
+    },
+    "SUSPECTS": {
+      "SUSPECTS": 1
+    },
+    "null": {
+      "null": 2
+    }
+  },
+  "leaks": {
+    "correct": 3,
+    "total": 3
+  },
+  "errors": {
+    "events": [],
+    "answers": []
+  }
+}

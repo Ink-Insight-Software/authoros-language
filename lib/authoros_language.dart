@@ -33,3 +33,4 @@ export 'src/model/chat_models.dart';
 export 'src/model/model_backed_chat.dart';
 export 'src/model/model_exception.dart';
 export 'src/model/own_model_client.dart';
+export 'src/story/story.dart';

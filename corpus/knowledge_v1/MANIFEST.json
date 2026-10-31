@@ -1,0 +1,13 @@
+{
+  "schema_version": "knowledge-continuity/1",
+  "files": {
+    "dev.jsonl": {
+      "records": 21,
+      "sha256": "70c72d97af18dde691ca37d0fa7c9ba5898ceb21bc8ec7ff27d799d9489a6df0"
+    },
+    "heldout.jsonl": {
+      "records": 17,
+      "sha256": "d28b29547270c5683c9f5f0a2416c1c9a2c4e389abfd020ef2d464202a690290"
+    }
+  }
+}

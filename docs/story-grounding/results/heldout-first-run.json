@@ -1,0 +1,221 @@
+{
+  "split": "heldout",
+  "records": 18,
+  "tagging": {
+    "pos": {
+      "correct": 174,
+      "total": 174
+    },
+    "open_class_lemma": {
+      "correct": 86,
+      "total": 86
+    },
+    "per_label": {
+      "PROPN": {
+        "tp": 20,
+        "fp": 0,
+        "fn": 0
+      },
+      "VERB": {
+        "tp": 22,
+        "fp": 0,
+        "fn": 0
+      },
+      "DET": {
+        "tp": 30,
+        "fp": 0,
+        "fn": 0
+      },
+      "NOUN": {
+        "tp": 37,
+        "fp": 0,
+        "fn": 0
+      },
+      "ADP": {
+        "tp": 16,
+        "fp": 0,
+        "fn": 0
+      },
+      "ADJ": {
+        "tp": 5,
+        "fp": 0,
+        "fn": 0
+      },
+      "PUNCT": {
+        "tp": 25,
+        "fp": 0,
+        "fn": 0
+      },
+      "AUX": {
+        "tp": 8,
+        "fp": 0,
+        "fn": 0
+      },
+      "PART": {
+        "tp": 3,
+        "fp": 0,
+        "fn": 0
+      },
+      "SCONJ": {
+        "tp": 1,
+        "fp": 0,
+        "fn": 0
+      },
+      "PRON": {
+        "tp": 4,
+        "fp": 0,
+        "fn": 0
+      },
+      "ADV": {
+        "tp": 2,
+        "fp": 0,
+        "fn": 0
+      },
+      "CCONJ": {
+        "tp": 1,
+        "fp": 0,
+        "fn": 0
+      }
+    }
+  },
+  "evidence": {
+    "true_positive": 16,
+    "predicted": 16,
+    "gold": 16
+  },
+  "status_confusion": {
+    "DERIVED": {
+      "DERIVED": 1
+    },
+    "STATED": {
+      "STATED": 11
+    },
+    "UNKNOWN": {
+      "UNKNOWN": 3
+    },
+    "CONFLICT": {
+      "CONFLICT": 1
+    }
+  },
+  "fact_extraction": {
+    "precision": 0.8571428571428571,
+    "recall": 0.8571428571428571,
+    "f1": 0.8571428571428571,
+    "matched": 18,
+    "gold": 21,
+    "produced": 21
+  },
+  "question_parsing": {
+    "intent": {
+      "correct": 16,
+      "total": 16
+    },
+    "relation": {
+      "correct": 15,
+      "total": 16
+    },
+    "entities": {
+      "correct": 15,
+      "total": 16
+    }
+  },
+  "answers_oracle": {
+    "correct": {
+      "correct": 15,
+      "total": 16
+    },
+    "status": {
+      "correct": 15,
+      "total": 16
+    }
+  },
+  "answers_end_to_end": {
+    "correct": {
+      "correct": 16,
+      "total": 16
+    },
+    "status": {
+      "correct": 16,
+      "total": 16
+    },
+    "evidence": {
+      "correct": 16,
+      "total": 16
+    },
+    "note": {
+      "correct": 1,
+      "total": 2
+    },
+    "offer_proposal": {
+      "correct": 16,
+      "total": 16
+    },
+    "attribution": {
+      "correct": 16,
+      "total": 16
+    },
+    "by_intent": {
+      "retrieve_location": {
+        "correct": 4,
+        "total": 4
+      },
+      "retrieve_agent": {
+        "correct": 5,
+        "total": 5
+      },
+      "yes_no": {
+        "correct": 3,
+        "total": 3
+      },
+      "retrieve_attribute": {
+        "correct": 1,
+        "total": 1
+      },
+      "retrieve_time": {
+        "correct": 1,
+        "total": 1
+      },
+      "retrieve_manner": {
+        "correct": 1,
+        "total": 1
+      },
+      "retrieve_object": {
+        "correct": 1,
+        "total": 1
+      }
+    },
+    "by_status": {
+      "DERIVED": {
+        "correct": 1,
+        "total": 1
+      },
+      "STATED": {
+        "correct": 11,
+        "total": 11
+      },
+      "UNKNOWN": {
+        "correct": 3,
+        "total": 3
+      },
+      "CONFLICT": {
+        "correct": 1,
+        "total": 1
+      }
+    }
+  },
+  "errors": {
+    "tagging": [],
+    "fact_extraction": [
+      "h10a missed {subject=item_gate relation=be attribute=green}   got: {subject=place_gate relation=be attribute=green}",
+      "h10b missed {subject=char_edda relation=wait location=item_gate}   got: {subject=char_edda relation=wait location=place_gate} | {subject=place_gate relation=be attribute=red}",
+      "h10b missed {subject=item_gate relation=be attribute=red}   got: {subject=char_edda relation=wait location=place_gate} | {subject=place_gate relation=be attribute=red}"
+    ],
+    "question_parsing": [
+      "h10_conflict_colour \"What colour is the gate?\": retrieve_attribute/null/{place_gate} want retrieve_attribute/null/{item_gate}",
+      "h16_synonym_in_question \"Where did Mara conceal the key?\": retrieve_location/conceal/{char_mara, item_key} want retrieve_location/hide/{char_mara, item_key}"
+    ],
+    "answers": [
+      "[oracle] h10_conflict_colour \"What colour is the gate?\"  got UNKNOWN \"[]\" ev={} note=null  want CONFLICT \"[green, red]\" ev={h10a, h10b} note=null"
+    ]
+  }
+}
