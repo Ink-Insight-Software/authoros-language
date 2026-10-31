@@ -791,6 +791,37 @@ class StoryLexicon {
     'wonder',
     'trust',
   };
+
+  /// Verbs after which the narrator also asserts the clause: knowing something makes it
+  /// true. Used to tell what a character knows from what they were told.
+  static const factiveVerbs = {
+    'know',
+    'learn',
+    'discover',
+    'realize',
+    'realise',
+    'notice',
+    'see',
+    'understand',
+    'remember',
+    'deduce',
+    'infer',
+    'confirm',
+  };
+
+  /// Verbs where the character took something in from a source that may be wrong.
+  static const intakeVerbs = {'read', 'hear', 'overhear'};
+
+  /// A character perceives an event: "saw Mara hide the key".
+  static const perceptionVerbs = {
+    'see',
+    'watch',
+    'notice',
+    'witness',
+    'hear',
+    'overhear',
+  };
+
   static const ditransitiveVerbs = {
     'give',
     'tell',
@@ -1000,9 +1031,14 @@ class StoryLexicon {
     'swear': ['swore', 'sworn'],
     'tear': ['tore', 'torn'],
     'wind': ['wound', 'wound'],
+    'overhear': ['overheard', 'overheard'],
   };
 
   static const regularVerbs = {
+    'misremember',
+    'deduce',
+    'infer',
+    'confirm',
     'end',
     'die',
     'tie',
@@ -1185,6 +1221,7 @@ class StoryLexicon {
 
   /// Short verbs whose last consonant doubles before -ed and -ing.
   static const doubling = {
+    'infer',
     'grab',
     'drop',
     'stop',

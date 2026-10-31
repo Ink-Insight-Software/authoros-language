@@ -37,11 +37,22 @@ class SlotValue {
 
 /// Who said or believed it, when a fact is not the narrator's own statement.
 class Attribution {
-  const Attribution({required this.speaker, required this.kind});
+  const Attribution({
+    required this.speaker,
+    required this.kind,
+    this.verb,
+    this.recipient,
+  });
   final String? speaker;
 
   /// `reported` (said, told, quoted) or `belief` (thought, believed).
   final String kind;
+
+  /// The verb that introduced it (`tell`, `read`, `believe`), when there was one.
+  final String? verb;
+
+  /// Who was told, when the sentence names them: `Mara told Iven that ...`.
+  final String? recipient;
 
   Map<String, dynamic> toJson() => {'speaker': speaker, 'kind': kind};
 
@@ -51,6 +62,51 @@ class Attribution {
 
   @override
   int get hashCode => Object.hash(speaker, kind);
+}
+
+/// Something a sentence says about what a character took in, found while extracting
+/// facts: "Iven saw Mara hide the key", "Mara told Iven that she hid it", "Iven did not
+/// know that ...". It points at the facts of the embedded clause; turning a cue into a
+/// knowledge event (state, route, time) is a separate stage (`knowledge.dart`).
+class KnowledgeCue {
+  const KnowledgeCue({
+    required this.sourceId,
+    required this.sentenceStart,
+    required this.sentenceEnd,
+    required this.verb,
+    required this.kind,
+    required this.factOrders,
+    this.knower,
+    this.recipient,
+    this.negated = false,
+    this.possible = false,
+  });
+
+  final String sourceId;
+  final int sentenceStart;
+  final int sentenceEnd;
+
+  /// The introducing verb's lemma.
+  final String verb;
+
+  /// `reported`, `belief`, `factive` (the narrator also asserts the clause),
+  /// `misremember`, or `perceived` (a bare-infinitive perception: "saw her hide it").
+  final String kind;
+
+  /// `Fact.order` of the facts of the embedded clause; the first is the proposition.
+  final List<int> factOrders;
+
+  /// The subject of the introducing verb.
+  final String? knower;
+
+  /// The person told, when named.
+  final String? recipient;
+
+  /// The introducing verb was negated ("did not know that").
+  final bool negated;
+
+  /// The introducing verb was hedged ("might know that").
+  final bool possible;
 }
 
 class Fact {

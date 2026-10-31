@@ -1,5 +1,12 @@
 # Design: pipeline, model boundary, and the handover's questions
 
+> **Revised handover.** A later version of the handover adds Character Knowledge Continuity and
+> replaces the six questions below with four. They are answered in
+> [character-knowledge.md](character-knowledge.md) (AI status, linking to existing records,
+> source-of-truth and story-version rules) and [evaluation.md](evaluation.md#answer-to-the-handovers-question-4-what-examples-and-tests-are-needed)
+> (what examples and held-out tests are needed). The six answers below still stand for the
+> language-understanding part.
+
 ## 1. What the platform allows (reviewed, not assumed)
 
 | Fact | Evidence | Consequence |

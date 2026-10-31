@@ -11,14 +11,19 @@ Grounding*.
 | [schema.md](schema.md) | `story-grounding/1`: the JSONL record, token, entity, fact, evidence and answer fields |
 | [annotation-guide.md](annotation-guide.md) | How to label sentences, with the edge cases decided |
 | [proposal-mode.md](proposal-mode.md) | Opt-in suggestions labelled PROPOSED, and the rule that nothing is canon until the author says so |
+| [character-knowledge.md](character-knowledge.md) | **Character Knowledge Continuity**: what a character knows or believes at a story point, how they learned it, possible knowledge leaks, linking without a second source of truth, the AI-status boundary |
+| [knowledge-schema.md](knowledge-schema.md) | `knowledge-continuity/1`: the knowledge record, query kinds and expected answers |
 | [evaluation.md](evaluation.md) | Held-out discipline, metrics per task, error review, and the first results with their limits |
 
 ## What exists
 
 ```
 corpus/story_v1/        dev.jsonl (37) · heldout.jsonl (18) · MANIFEST.json · build.py
+corpus/knowledge_v1/    dev.jsonl (21) · heldout.jsonl (17) · MANIFEST.json · build.py
 lib/src/story/          tokenizer · tagger · extractor · index · question · retriever · proposals
+                        knowledge · knowledge_question  (Character Knowledge Continuity)
 tool/story_eval.dart    scores tagging, extraction, question parsing and answers separately
+tool/knowledge_eval.dart scores knowledge events, knowledge answers and leak review items
 test/story_grounding_test.dart
 ```
 
@@ -46,6 +51,8 @@ feeds the index.
 dart test                                              # unit tests, incl. the dev corpus
 dart run tool/story_eval.dart dev                      # development set, with every miss listed
 python3 -I corpus/story_v1/build.py --check            # corpus files match their sources
+python3 -I corpus/knowledge_v1/build.py --check
+dart run tool/knowledge_eval.dart dev
 ```
 
 ## What it is not (yet)
