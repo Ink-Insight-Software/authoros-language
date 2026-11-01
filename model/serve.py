@@ -52,16 +52,25 @@ def make_handler(model, tok, token: str, name: str):
             self._send(200, {"ok": True}) if self.path == "/healthz" else self._send(404, {"error": "not found"})
 
         def do_POST(self):
+            # Read the body before answering anything. Answering a request whose body
+            # is still unread makes some clients see a reset connection instead of our
+            # status, so a wrong token would look like "unreachable".
+            try:
+                n = int(self.headers.get("content-length", "0"))
+            except ValueError:
+                n = -1
+            raw = self.rfile.read(n) if 0 < n <= MAX_BODY else b""
+            if n > MAX_BODY:
+                self.close_connection = True  # too big to read: say so and hang up
             if self.path != "/v1/say":
                 return self._send(404, {"error": "not found"})
             given = self.headers.get("authorization", "")
             if not hmac.compare_digest(given.encode(), f"Bearer {token}".encode()):
                 return self._send(401, {"error": "unauthorised"})
             try:
-                n = int(self.headers.get("content-length", "0"))
                 if n <= 0 or n > MAX_BODY:
                     return self._send(413, {"error": "body size"})
-                req = json.loads(self.rfile.read(n))
+                req = json.loads(raw)
                 moment = req.get("moment", "chat")
                 if moment not in MOMENTS:
                     return self._send(400, {"error": "unknown moment"})
