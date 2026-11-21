@@ -17,6 +17,9 @@ enum ModelFailure {
   /// Answered, but with nothing usable.
   empty,
 
+  /// The model declined to answer. The caller uses the authored line.
+  refused,
+
   /// Anything else the server reported.
   other,
 }
