@@ -83,6 +83,10 @@ class FactExtractor {
   /// author can be offered them as new characters.
   final unregisteredNames = <String>{};
 
+  /// Who "I" is when a sentence is not a quotation: set while reading a character's own
+  /// words (`factsFrom`), null otherwise.
+  String? _firstPerson;
+
   ExtractionOutput extract(String sourceId, String text) {
     final sentences = tagger.tag(_tokenizer.tokenize(text));
     final facts = <Fact>[];
@@ -155,17 +159,28 @@ class FactExtractor {
   /// no effect on the extractor's memory of earlier sentences: no pronoun history, fact
   /// numbering or unregistered names are changed.
   Fact? propositionFrom(String clause) {
+    final facts = factsFrom(clause);
+    return facts.isEmpty ? null : facts.first;
+  }
+
+  /// Every fact in [text], read as if it were a passage, without changing the
+  /// extractor's memory. [speaker] is who "I" means, for a character's own words.
+  /// Used to check what a character said against what the story says.
+  List<Fact> factsFrom(String text, {String? speaker}) {
     final savedHistory = List<_Mention>.of(_history);
     final savedSurface = Map<String, String>.of(_surface);
     final savedNames = {...unregisteredNames};
     final savedSentence = _sentenceCounter, savedOrder = _order;
+    final savedFirst = _firstPerson;
     try {
-      final out = extract(
-        'proposition',
-        '${clause.trim().replaceAll(RegExp(r'[.?!]+$'), '')}.',
-      );
-      return out.facts.isEmpty ? null : out.facts.first;
+      _firstPerson = speaker;
+      final trimmed = text.trim();
+      final closed = RegExp(r'[.?!]$').hasMatch(trimmed)
+          ? trimmed
+          : '$trimmed.';
+      return extract('proposition', closed).facts;
     } finally {
+      _firstPerson = savedFirst;
       _history
         ..clear()
         ..addAll(savedHistory);
@@ -607,11 +622,8 @@ class FactExtractor {
     final form = EntityRegistry.subjectForm(word);
     switch (form) {
       case 'i':
-        return _Ref(
-          speaker,
-          _named(speaker, text),
-          unresolved: speaker == null,
-        );
+        final who = speaker ?? _firstPerson;
+        return _Ref(who, _named(who, text), unresolved: who == null);
       case 'she' || 'he' || 'they':
         final ids = <String>{};
         for (final m in _window()) {
