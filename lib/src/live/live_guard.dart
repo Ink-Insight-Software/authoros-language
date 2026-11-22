@@ -97,7 +97,8 @@ class LiveGuard {
       ..writeln(input.directive.draft.join('\n'))
       ..writeln(input.summary ?? '')
       ..writeln(input.epithet ?? '')
-      ..writeln(input.roles ?? '');
+      ..writeln(input.roles ?? '')
+      ..writeln(input.guidance.allText);
     for (final f in input.facts) {
       text.writeln(f.text);
     }
@@ -141,6 +142,18 @@ class LiveGuard {
     final d = input.directive;
     final marks = '?'.allMatches(t).length;
     final q = d.question;
+    // A question put to the character is answered, not just handed another one.
+    if (d.authorAsked && q != null && !d.opening) {
+      final plainQ = _plain(q);
+      final plainT = _plain(t);
+      final before = plainT.endsWith(plainQ)
+          ? plainT.substring(0, plainT.length - plainQ.length).trim()
+          : plainT;
+      final words = before.split(RegExp(r'\s+')).where((w) => w.isNotEmpty);
+      if (words.length < 3) {
+        bad.add('does not answer what the author asked before asking its own');
+      }
+    }
     if (q != null) {
       final tail = _plain(t);
       if (!tail.endsWith(_plain(q))) {

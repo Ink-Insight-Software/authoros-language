@@ -9,6 +9,7 @@ library;
 
 import '../language/character_answerer.dart' show KnownFact;
 import '../questions/relationship_stage.dart';
+import 'live_feedback.dart';
 import '../voice/relationship_behaviour.dart'
     show EmotionalState, RelationshipBehaviour;
 import '../voice/voice_profile.dart';
@@ -93,6 +94,7 @@ class LiveTurnInput {
     this.authorText,
     this.sceneTitle,
     this.authorName,
+    this.guidance = FeedbackGuidance.none,
   });
 
   final String characterName;
@@ -126,6 +128,10 @@ class LiveTurnInput {
   final String? sceneTitle;
   final String? authorName;
 
+  /// What the author has told this character about how they answer. About manner only,
+  /// never facts.
+  final FeedbackGuidance guidance;
+
   /// Tender facts open up once the character knows the author a little, the same
   /// boundary the rule-based answerer keeps.
   List<KnownFact> get usableFacts => [
@@ -153,6 +159,7 @@ class LiveTurnInput {
     authorText: authorText,
     sceneTitle: sceneTitle,
     authorName: authorName,
+    guidance: guidance,
   );
 }
 

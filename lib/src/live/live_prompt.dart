@@ -8,6 +8,7 @@ library;
 import '../questions/relationship_stage.dart';
 import '../voice/relationship_behaviour.dart';
 import '../voice/voice_profile.dart';
+import 'live_feedback.dart';
 import 'live_models.dart';
 
 /// One message in the conversation sent to the model.
@@ -194,10 +195,55 @@ class LivePrompt {
     b.writeln(
       '- Ask at most one question, and only if the instructions below say to.',
     );
+    b.writeln(
+      '- When the author asks you something, answer it first, in a line, as yourself: '
+      'directly, from what you know, or say plainly that you do not know. Only then '
+      'ask your own question, if you are to.',
+    );
+    b.write(_guidance(input.guidance));
     b.writeln();
     b.writeln('What to do this turn');
     b.write(_directive(input.directive));
     return b.toString().trimRight();
+  }
+
+  /// What the author has said about how this character answers. Manner only: the prompt
+  /// says so, and the checks still hold every reply to the memory list.
+  static String _guidance(FeedbackGuidance g) {
+    if (g.isEmpty) return '';
+    final b = StringBuffer();
+    b.writeln();
+    b.writeln('What the author has told you about how you answer');
+    b.writeln(
+      'This is about how you answer, never about what is true. Facts still come only '
+      'from your memory above.',
+    );
+    if (g.liked.isNotEmpty) {
+      b.writeln(
+        'Answers the author liked. Answer in the same manner, not the same words:',
+      );
+      for (final l in g.liked) {
+        final said = l.authorText.isEmpty
+            ? '(you spoke first)'
+            : '"${l.authorText}"';
+        b.writeln('- The author said $said. You said: "${l.characterText}"');
+      }
+    }
+    if (g.corrections.isNotEmpty) {
+      b.writeln('Answers the author wanted done differently:');
+      for (final c in g.corrections) {
+        final said = c.authorText.isEmpty
+            ? '(you spoke first)'
+            : '"${c.authorText}"';
+        final want = c.wanted.isEmpty
+            ? 'They said it was not quite right.'
+            : 'They wanted: ${c.wanted}';
+        b.writeln(
+          '- The author said $said. You said: "${c.characterText}". $want',
+        );
+      }
+    }
+    return b.toString();
   }
 
   static String _directive(LiveDirective d) {
