@@ -39,8 +39,9 @@ class LiveDirective {
   /// How the character is being with the author just now (open, teasing, guarded...).
   final RelationshipBehaviour behaviour;
 
-  /// The question the character asks next, exactly as the engine chose it. The reply
-  /// must end with it, unchanged: wording never changes what was asked.
+  /// What the engine chose to find out next. The character asks it in their own words
+  /// as the one question that ends the reply, or, if it is already answered or
+  /// repeated, the natural next one.
   final String? question;
 
   /// What the rule-based engine would say this turn, in plain words. It carries the

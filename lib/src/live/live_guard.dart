@@ -71,6 +71,16 @@ class LiveGuard {
     return out;
   }
 
+  /// The final sentence of [t] (the question, when the reply ends with one).
+  static String _lastSentence(String t) {
+    final trimmed = t.trimRight();
+    final body = trimmed.endsWith('?')
+        ? trimmed.substring(0, trimmed.length - 1)
+        : trimmed;
+    final cut = body.lastIndexOf(RegExp(r'[.!?…]\s'));
+    return cut < 0 ? trimmed : trimmed.substring(cut + 2).trimLeft();
+  }
+
   static String _plain(String s) =>
       s.toLowerCase().replaceAll(RegExp(r'[^a-z0-9]+'), ' ').trim();
 
@@ -143,23 +153,35 @@ class LiveGuard {
     final marks = '?'.allMatches(t).length;
     final q = d.question;
     // A question put to the character is answered, not just handed another one.
-    if (d.authorAsked && q != null && !d.opening) {
-      final plainQ = _plain(q);
-      final plainT = _plain(t);
-      final before = plainT.endsWith(plainQ)
-          ? plainT.substring(0, plainT.length - plainQ.length).trim()
-          : plainT;
-      final words = before.split(RegExp(r'\s+')).where((w) => w.isNotEmpty);
-      if (words.length < 3) {
-        bad.add('does not answer what the author asked before asking its own');
-      }
-    }
+    // The decided question says what to find out; the character may word it as
+    // their own, but it must still be exactly one question, last.
     if (q != null) {
-      final tail = _plain(t);
-      if (!tail.endsWith(_plain(q))) {
-        bad.add('does not end with the decided question, unchanged');
-      } else if (marks > 1) {
-        bad.add('asks more than the one question');
+      final lastQuestion = _lastSentence(t);
+      if (!t.trimRight().endsWith('?') || marks != 1) {
+        bad.add(
+          marks > 1
+              ? 'asks more than the one question'
+              : 'does not end with a question',
+        );
+      } else if (d.authorAsked && !d.opening) {
+        final before = t.substring(0, t.length - lastQuestion.length);
+        final words = _plain(
+          before,
+        ).split(RegExp(r'\s+')).where((w) => w.isNotEmpty);
+        if (words.length < 3) {
+          bad.add(
+            'does not answer what the author asked before asking its own',
+          );
+        }
+      }
+      final asked = _plain(lastQuestion);
+      for (final l in input.history) {
+        if (l.speaker == LiveSpeaker.character &&
+            asked.length > 12 &&
+            _plain(l.text).contains(asked)) {
+          bad.add('asks the same question it already asked');
+          break;
+        }
       }
     } else {
       final lively = switch (d.behaviour) {
