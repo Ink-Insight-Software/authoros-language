@@ -99,11 +99,15 @@ void main() {
       expect(p, contains('fears the sea'));
     });
 
-    test('the decided question is to be said word for word, last', () {
-      final p = LivePrompt.system(turn(question: 'What do you want most?'));
-      expect(p, contains('word for word'));
-      expect(p, contains('What do you want most?'));
-    });
+    test(
+      'the decided question is what to find out, in the character\'s words',
+      () {
+        final p = LivePrompt.system(turn(question: 'What do you want most?'));
+        expect(p, contains('own words'));
+        expect(p, isNot(contains('word for word')));
+        expect(p, contains('What do you want most?'));
+      },
+    );
 
     test('a what-if conversation says nothing is canon', () {
       expect(
@@ -192,14 +196,35 @@ void main() {
       expect(c.ok, isTrue, reason: c.problems.join(','));
     });
 
-    test('the decided question must end the reply, unchanged', () {
+    test('the reply ends with exactly one question, which may be reworded', () {
       final t = turn(ask: 'Hm.', question: 'What do you want most?');
       expect(g.check(t, 'Fair enough. What do you want most?').ok, isTrue);
-      expect(g.check(t, 'Fair enough. What do you want?').ok, isFalse);
+      expect(g.check(t, 'Fair enough. What is it you are after?').ok, isTrue);
+      expect(
+        g.check(t, 'Fair enough. Say more.').ok,
+        isFalse,
+        reason: 'no question',
+      );
       expect(
         g.check(t, 'What do you want most? And why?').ok,
         isFalse,
-        reason: 'not last, and a second question',
+        reason: 'a second question',
+      );
+      expect(g.check(t, 'What do you want most? Fair enough.').ok, isFalse);
+    });
+
+    test('a question already asked is not asked again', () {
+      final t = turn(
+        ask: 'Hm.',
+        question: 'What do you want most?',
+        history: const [
+          LiveLine(LiveSpeaker.character, 'Right. What is it you are after?'),
+        ],
+      );
+      expect(g.check(t, 'Fair enough. What is it you are after?').ok, isFalse);
+      expect(
+        g.check(t, 'Fair enough. And what would you give for it?').ok,
+        isTrue,
       );
     });
 

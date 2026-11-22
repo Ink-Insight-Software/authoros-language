@@ -290,8 +290,12 @@ class LivePrompt {
     final q = d.question;
     if (q != null) {
       b.writeln(
-        'Finish with this question, word for word, as the very last thing you say. '
-        'Do not change it and do not ask anything else: $q',
+        'Finish with one question of your own, as the very last thing you say, and '
+        'say nothing after it. What the story wants to find out is: $q  Put it in '
+        'your own words, in your own voice, as a question that follows from what the '
+        'author just said. If the author has already answered it, or it repeats '
+        'something said above, ask the next natural question that goes further '
+        'instead. Ask exactly one question.',
       );
     }
     return b.toString();
