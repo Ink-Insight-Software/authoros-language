@@ -155,6 +155,13 @@ class LivePrompt {
       'histories or relationships that are not on the list, and never state as fact '
       'something you only believe or suspect.',
     );
+    b.writeln(
+      'You also hear everything the author says to you in this conversation. Listen '
+      'to it and understand it. When they explain something to you, take it in and '
+      'respond to what they actually said: you may use it, refer back to it and build '
+      'on it as something they told you. It is their account and is not yet part of '
+      'the story, but never say they have not told you something they have.',
+    );
     b.writeln();
     b.writeln('How you are with the author right now');
     b.writeln('- ${_stage(input.stage)}');
@@ -268,9 +275,13 @@ class LivePrompt {
     }
     if (d.draft.isNotEmpty) {
       b.writeln(
-        'Here is a plain draft of what you intend to convey this turn. Say the same '
-        'things in your own voice. You may reorder and condense. Do not add facts '
-        'that are not in the draft or in your memory above:',
+        'A simple word-matching engine suggests the following for this turn. It can '
+        'be wrong, and it does not understand the conversation. What the author '
+        'actually said, and everything said above, comes first. Use a suggestion '
+        'only if it truly fits what they just said, in your own voice, and drop any '
+        'line that does not fit, or that says the author has not said, explained or '
+        'told you something they actually have. Do not add facts that are not in '
+        'your memory above or in the conversation:',
       );
       for (final l in d.draft) {
         b.writeln('  > $l');

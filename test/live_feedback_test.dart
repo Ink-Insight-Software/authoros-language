@@ -144,6 +144,51 @@ void main() {
       );
     });
 
+    test(
+      'tells the character to listen to what the author says, and not to deny it',
+      () {
+        final p = LivePrompt.system(input());
+        expect(
+          p,
+          contains(
+            'hear everything the author says to you in this conversation',
+          ),
+        );
+        expect(
+          p,
+          contains('never say they have not told you something they have'),
+        );
+      },
+    );
+
+    test(
+      'the engine\'s draft is a suggestion that may be wrong, not a decision',
+      () {
+        final t = LiveTurnInput(
+          characterName: 'Kali',
+          authorText: 'The safehouse is run by Mara and Alec.',
+          directive: const LiveDirective(
+            behaviour: RelationshipBehaviour.trust,
+            draft: ["You haven't said what Alec and I are to each other."],
+          ),
+        );
+        final p = LivePrompt.system(t);
+        expect(p, contains('It can be wrong'));
+        expect(p, contains('drop any line that does not fit'));
+        expect(
+          p,
+          contains(
+            'has not said, explained or told you something they actually have',
+          ),
+        );
+        expect(
+          p,
+          contains("You haven't said what Alec and I are to each other."),
+        );
+        expect(p, isNot(contains('Say the same things')));
+      },
+    );
+
     test('tells the character to answer a question first', () {
       expect(LivePrompt.system(input()), contains('answer it first'));
     });
