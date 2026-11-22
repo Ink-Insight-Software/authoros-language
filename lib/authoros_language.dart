@@ -35,6 +35,7 @@ export 'src/model/model_exception.dart';
 export 'src/model/own_model_client.dart';
 export 'src/story/story.dart';
 export 'src/live/hosted_conversation_model.dart';
+export 'src/live/live_feedback.dart';
 export 'src/live/live_conversation.dart';
 export 'src/live/live_guard.dart';
 export 'src/live/live_models.dart';
